@@ -5,8 +5,9 @@ import {
   ChatBubbleOutlineRounded,
   CloseRounded,
   SendRounded,
-
-
+  DeleteRounded,
+  EditRounded,
+  PriorityHighRounded,
 } from "@mui/icons-material";
 import {
   Paper,
@@ -19,10 +20,12 @@ import {
   Modal,
   TextField,
   IconButton,
-
+  Tooltip,
 } from "@mui/material";
 import React, {
+  Dispatch,
   MouseEvent,
+  SetStateAction,
   createContext,
   useContext,
   useEffect,
@@ -34,10 +37,13 @@ import React, {
 import { dateWhenFormat } from "../utils/dateTools";
 import { UserInfoContext } from "../providers/UserInfoProvider";
 import axiosClient from "../utils/axios";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { PostContextProps } from "../types/providers";
+import { PostEditor } from "./PostEditor";
+import { TokenContext } from "../providers/TokenProvider";
+import { AlertContext } from "../providers/AlertProvider";
 
-
-const PostProvider = createContext<PostContext | null>(null);
+export const PostContext = createContext<PostContextProps | null>(null);
 
 export default function Post({ postParam }: { postParam: Post }) {
   const [post, setPost] = useState<Post | null>(null);
@@ -46,63 +52,81 @@ export default function Post({ postParam }: { postParam: Post }) {
     setPost(postParam);
   };
   const navigate = useNavigate();
+  const [deleteAlert, setDeleteAlert] = useState(false);
+  const [postEditor, setPostEditor] = useState(false);
+  const location = useLocation();
 
-  const navigatable = post?.author.id !== localStorage.getItem("id");
+  const postNotFromUser = post?.author.id !== localStorage.getItem("id");
 
-
-
-
-
+  const navigateToProfile = () => {
+    if (!post) return;
+    if (postNotFromUser) navigate(`/profile/${post.author.id}`);
+  };
 
   const loading = post === null;
+  const openDeleteAlert = () => {
+    setDeleteAlert(true);
+  };
+  const openPostEditor = () => {
+    setPostEditor(true);
+  };
 
   useEffect(() => {
     initializeContextData();
-  }, []);
+  }, [postParam]);
 
   return loading ? (
-    <p>loading...</p>
+    <></>
   ) : (
-    <PostProvider.Provider value={{ post, setPost }}>
-      <Paper className="post md:w-full sm:w-11/12">
-        <div className="user-profile">
+    <PostContext.Provider value={{ post, setPost }}>
+      <Paper className="post">
+        <div className="flex gap-3">
           <Avatar
-            className="avatar md:size-12 sm:size-24"
+            className="size-[50px] border-[3px]  border-solid border-primary-400"
             src={`${process.env.SERVER_PUBLIC}/${post.author.pfp}`}
           />
           <div className={`post-detail`}>
-            <Typography
-              className={`name font-body md:text-base sm:text-3xl font-bold ${navigatable ? "hover:cursor-pointer hover:underline" : ""}`}
-              variant="body1"
-              onClick={() => {
-                if (navigatable) {
-                  navigate(`/profile/${post.author.id}`);
-                }
-              }}
+            <p
+              className={` font-body text-base font-bold text-slate-800 ${postNotFromUser ? "hover:cursor-pointer hover:underline" : ""}`}
+              onClick={navigateToProfile}
             >
               {post.author.fullname}
-            </Typography>
-            <Typography className="md:text-base sm:text-2xl" variant="subtitle2" sx={{ color: "#536471" }}>
+            </p>
+            <Typography variant="subtitle2" sx={{ color: "#536471" }}>
               {dateWhenFormat(new Date(post.createdAt))}
             </Typography>
           </div>
+          {location.pathname.includes("/profile/") && (
+            <div className="ml-auto self-start rounded-full bg-primary-50 px-3 py-1">
+              <Tooltip title="Edit Post">
+                <IconButton onClick={openPostEditor}>
+                  <EditRounded className="text-secondary-400" />
+                </IconButton>
+              </Tooltip>
 
+              <Tooltip title="Delete Post">
+                <IconButton onClick={openDeleteAlert}>
+                  <DeleteRounded className="text-red-600" />
+                </IconButton>
+              </Tooltip>
+            </div>
+          )}
         </div>
         <div className="line line__1"></div>
-        <Typography className="md:text-lg sm:text-3xl my-2 font-bold" variant="h5">
+        <Typography className="my-2 font-bold" variant="h5">
           {post.title}
         </Typography>
         {post.context.length < 200 ? (
           <>
-            <Typography className="md:text-lg sm:text-3xl" variant="body1">{post.context}</Typography>
+            <Typography variant="body1">{post.context}</Typography>
             <Tags tags={post.tags} />
           </>
         ) : (
           <>
-            <Typography className="md:text-lg sm:text-3xl" variant="body1">
+            <Typography variant="body1">
               {textVisible ? post.context : post.context.slice(0, 200) + "..."}
               <Button
-                className="normal-case md:text-base sm:text-2xl no-underline text-blue-400 hover:cursor-pointer hover:text-blue-700"
+                className="normal-case text-blue-400 hover:cursor-pointer hover:text-blue-700 hover:underline"
                 variant="text"
                 color="secondary"
                 onClick={() => setTextVisibility(!textVisible)}
@@ -116,7 +140,21 @@ export default function Post({ postParam }: { postParam: Post }) {
         <ImageList medias={post.media} />
         <PostActions />
       </Paper>
-    </PostProvider.Provider>
+      {deleteAlert && (
+        <PostDeleteAlert
+          dialogOpen={deleteAlert}
+          setDialogOpen={setDeleteAlert}
+        />
+      )}
+      {postEditor && (
+        <PostEditor
+          postModalView={postEditor}
+          setPostModalView={setPostEditor}
+          post={post}
+          setPost={setPost}
+        />
+      )}
+    </PostContext.Provider>
   );
 }
 function ImageList({
@@ -185,7 +223,7 @@ function ImageList({
     } else {
       mediaSet.push(
         <video
-          className="block md:h-full md:w-full border-2 border-solid border-slate-800 object-cover"
+          className="block h-full w-full border-2 border-solid border-slate-800 object-cover"
           key={media.filename.slice(0, 15)}
           style={{
             gridRow: gridBluePrint[index].gridRow,
@@ -211,7 +249,7 @@ function ImageList({
 }
 
 function PostActions() {
-  const { post } = useContext(PostProvider)!;
+  const { post } = useContext(PostContext)!;
   const theme = useTheme();
   const [fillHeart, setFillHeart] = useState(
     post?.liked_by_users_id.includes(
@@ -224,11 +262,11 @@ function PostActions() {
   );
   return (
     <>
-      <div className="mt-2 flex items-center justify-start">
+      <div className="mt-4 flex items-center justify-between px-2">
         <MenuItem className="rounded-md">
-          <FavoriteRounded className={`text-gray-400 md:size-6 sm:size-14`} />
+          <FavoriteRounded className={`text-gray-400`} />
           <Typography
-            className="ml-2 md:text-base sm:text-3xl"
+            className="ml-2"
             variant="subtitle2"
             color={theme.palette.text.secondary}
           >
@@ -236,9 +274,9 @@ function PostActions() {
           </Typography>
         </MenuItem>
         <MenuItem className="rounded-md">
-          <ChatRounded className={`text-gray-400 md:size-6 sm:size-14`} />
+          <ChatRounded className={`text-gray-400`} />
           <Typography
-            className={`ml-2 md:text-base sm:text-3xl`}
+            className={`ml-2`}
             variant="subtitle2"
             color={theme.palette.text.secondary}
           >
@@ -247,7 +285,7 @@ function PostActions() {
         </MenuItem>
       </div>
       <div className="my-2 w-full border-b-2 border-solid border-gray-300" />
-      <div className="flex items-center justify-evenly gap-4">
+      <div className="flex items-center justify-center gap-4">
         <MenuItem
           className="rounded-md"
           color="primary"
@@ -270,19 +308,19 @@ function PostActions() {
           }}
         >
           {fillHeart ? (
-            <FavoriteRounded className="text-primary-300 md:size-6 sm:size-14" />
+            <FavoriteRounded className="text-primary-300" />
           ) : (
-            <FavoriteBorderRounded className="text-gray-600 md:size-6 sm:size-14" />
+            <FavoriteBorderRounded className="text-gray-600" />
           )}
-          <Typography className="ml-2 md:text-base sm:text-3xl">Like</Typography>
+          <Typography className="ml-2">Like</Typography>
         </MenuItem>
         <MenuItem
           className="rounded-md"
           onClick={() => setCommentModalView(!commentModalView)}
           color="primary"
         >
-          <ChatBubbleOutlineRounded className="text-gray-600 md:size-6 sm:size-14" />
-          <Typography className="ml-2 md:text-base sm:text-3xl">Comment</Typography>
+          <ChatBubbleOutlineRounded className="text-gray-600" />
+          <Typography className="ml-2">Comment</Typography>
         </MenuItem>
         <CommentModal
           commentModalView={commentModalView}
@@ -300,7 +338,7 @@ function CommentModal({
   setCommentModalView: React.Dispatch<React.SetStateAction<boolean>>;
   commentModalView: boolean;
 }) {
-  const { post, setPost } = useContext(PostProvider)!;
+  const { post, setPost } = useContext(PostContext)!;
   const commentRef = useRef<HTMLInputElement>(null);
   const [newComment, setNewComment] = useState<CommentProps[]>([]);
   const { userInfo } = useContext(UserInfoContext)!;
@@ -339,14 +377,14 @@ function CommentModal({
       open={commentModalView}
       onClose={() => setCommentModalView(!commentModalView)}
     >
-      <div className="absolute left-1/2 top-1/2 flex max-h-[90%] w-[600px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg bg-white shadow-md md:min-h-[450px] md:min-w-[500px] sm:min-h-[1000px] sm:min-w-[800px]">
+      <div className="absolute left-1/2 top-1/2 flex max-h-[90%] w-[600px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg bg-white shadow-md  2xl:min-h-[450px] ">
         <div className="header flex items-center justify-center bg-transparent py-5">
-          <Typography className="md:text-2xl sm:text-3xl" variant="h4">{post?.author.fullname}'s Post</Typography>
+          <Typography variant="h4">{post?.author.fullname}'s Post</Typography>
           <MenuItem
-            className="absolute right-3 rounded-[100%] md:p-2 sm:p-3"
+            className="absolute right-3 rounded-[100%] p-2"
             onClick={() => setCommentModalView(!commentModalView)}
           >
-            <CloseRounded className="text-gray-500 md:size-8 sm:size-16" />
+            <CloseRounded className="text-gray-500" />
           </MenuItem>
         </div>
         <div
@@ -369,11 +407,11 @@ function CommentModal({
           )}
         </div>
         <Paper
-          className="fixed bottom-0 flex items-center w-full gap-2 px-4 py-8"
+          className="fixed bottom-0 flex w-full gap-2 px-4 py-4"
           elevation={2}
         >
           <Avatar
-            className="avatar md:size-10 sm:size-16"
+            className="avatar"
             src={`${process.env.SERVER_PUBLIC}/${userInfo.pfp}`}
           />
           <form className="relative w-full">
@@ -384,22 +422,12 @@ function CommentModal({
               rows={2}
               sx={{
                 "& .MuiInputBase-input::placeholder": {
-                  fontSize: {
-                    xs: '30px', // Larger font for smaller screens
-                    md: '18px', // Medium font for larger screens
-                  },
-                  opacity: 0.5,
-                },"& .MuiInputBase-input": {
-                  fontSize: {
-                    xs: '30px', // Larger font for smaller screens
-                    md: '18px', // Medium font for larger screens
-                  },
+                  color: "#838489",
+                  opacity: 1,
                 },
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
                     borderColor: "none",
-                    borderRadius: "16px",
-
                   },
                   "&:hover fieldset": {},
                   "&.Mui-focused fieldset": {
@@ -413,7 +441,7 @@ function CommentModal({
             />
             <IconButton
               type="submit"
-              className="absolute bottom-4 right-2"
+              className="absolute bottom-2 right-2"
               onClick={(e) => {
                 e.preventDefault();
                 axiosClient.post(
@@ -456,7 +484,7 @@ function CommentModal({
                 }
               }}
             >
-              <SendRounded className="icon md:size-6 sm:size-10"/>
+              <SendRounded className="icon" />
             </IconButton>
           </form>
         </Paper>
@@ -479,7 +507,7 @@ function Tags({ tags }: { tags: string[] }) {
         return (
           <span
             onClick={handleTagNavigation}
-            className="break-words md:text-base sm:text-3xl text-blue-400 hover:cursor-pointer hover:text-blue-700 hover:underline"
+            className="break-words text-blue-400 hover:cursor-pointer hover:text-blue-700 hover:underline"
           >
             #{tag}
           </span>
@@ -497,19 +525,19 @@ function Comment({
   highlight: boolean;
 }) {
   return (
-    <div className="mb-12 flex items-center gap-4">
+    <div className="mb-12 flex gap-4">
       <Avatar
-        className="border md:size-12 sm:size-20"
+        className="border"
         src={`${process.env.SERVER_PUBLIC}/${comment.author.pfp}`}
       />
       <div
         className={`relative max-w-[85%] rounded-md ${!highlight ? "bg-gray-100" : "border-2 border-solid border-primary-300 bg-primary-100"} p-4`}
       >
-        <p className="md:font-body md:text-sm sm:text-3xl font-semibold  text-slate-800">
+        <p className="font-body text-sm font-semibold  text-slate-800">
           {comment.author.fullname}
         </p>
-        <Typography className="md:text-sm sm:text-3xl">{comment.content}</Typography>
-        <Typography className="absolute top-full md:text-base sm:text-2xl">
+        <Typography className="">{comment.content}</Typography>
+        <Typography className="absolute top-full">
           {dateWhenFormat(new Date(comment.createdAt))}
         </Typography>
       </div>
