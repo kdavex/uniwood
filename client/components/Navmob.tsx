@@ -22,6 +22,7 @@ interface FocustStateProps {
 }
 
 const Navmob = () => {
+
     const { userInfo } = useContext(UserInfoContext)!;
     const navigate = useNavigate();
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -77,3 +78,4 @@ const Navmob = () => {
 };
 
 export default Navmob;
+

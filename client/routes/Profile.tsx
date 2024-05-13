@@ -66,7 +66,7 @@ export default function Profile() {
     <ProfileContext.Provider
       value={{ userProfileInfo, setUserProfileInfo, userPosts, setUserPosts }}
     >
-      <div className="profile ">
+      <div className="profile md:w-full sm:w-11/12">
         <UserProfileContent setTabIndex={setTabIndex} />
         <Section tabIndex={tabIndex} setTabIndex={setTabIndex} />
       </div>
@@ -95,10 +95,10 @@ function Section({
       <TabContext value={tabIndex}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <TabList className="tab-list" onChange={handleTabChange}>
-            <Tab label="Posts" value="1" />
-            <Tab label="Details" value="2" />
-            <Tab label="Followers" value="3" />
-            <Tab label="Following" value="4" />
+            <Tab className="md:text-base sm:text-3xl" label="Posts" value="1" />
+            <Tab className="md:text-base sm:text-3xl" label="Details" value="2" />
+            <Tab className="md:text-base sm:text-3xl" label="Followers" value="3" />
+            <Tab className="md:text-base sm:text-3xl" label="Following" value="4" />
           </TabList>
         </Box>
         <TabPanel value="1" className="">
@@ -133,36 +133,36 @@ function Section({
 function UserDetail() {
   const { userProfileInfo } = useContext(ProfileContext)!;
   return (
-    <Paper className="detail-section">
+    <Paper className="detail-section md:w-full sm:w-11/12">
       <div className="field-container">
-        <Typography className="label">Name: </Typography>
-        <Typography className="value">{userProfileInfo?.fullname}</Typography>
+        <Typography className="label md:text-xl sm:text-3xl">Name: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">{userProfileInfo?.fullname}</Typography>
       </div>
       <div className="field-container">
-        <Typography className="label">Username: </Typography>
-        <Typography className="value">@{userProfileInfo?.username}</Typography>
+        <Typography className="label md:text-xl sm:text-3xl">Username: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">@{userProfileInfo?.username}</Typography>
       </div>
       <div className="field-container">
-        <Typography className="label">Bio: </Typography>
-        <Typography className="value">{userProfileInfo?.bio}</Typography>
+        <Typography className="label md:text-xl sm:text-3xl">Bio: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">{userProfileInfo?.bio}</Typography>
       </div>
       <div className="field-container">
-        <Typography className="label">Gender: </Typography>
-        <Typography className="value">{userProfileInfo?.gender}</Typography>
+        <Typography className="label md:text-xl sm:text-3xl">Gender: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">{userProfileInfo?.gender}</Typography>
       </div>
       <div className="field-container">
-        <Typography className="label">Address: </Typography>
-        <Typography className="value">{userProfileInfo?.address}</Typography>
+        <Typography className="label md:text-xl sm:text-3xl">Address: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">{userProfileInfo?.address}</Typography>
       </div>
       <div className="field-container">
-        <Typography className="label">Affiliation: </Typography>
-        <Typography className="value">
+        <Typography className="label md:text-xl sm:text-3xl">Affiliation: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">
           {userProfileInfo?.affiliation}
         </Typography>
       </div>
       <div className="field-container">
-        <Typography className="label">Birth date: </Typography>
-        <Typography className="value">
+        <Typography className="label md:text-xl sm:text-3xl">Birthdate: </Typography>
+        <Typography className="value md:text-xl sm:text-3xl">
           {
             new Date(userProfileInfo?.dateOfBirth as string)
               .toISOString()
@@ -269,7 +269,7 @@ function UserProfileContent({
     if (localStorage.getItem("id") !== userProfileInfo?.id) {
       return (
         <Button
-          className="  rounded-full px-9 py-2 font-semibold normal-case text-white"
+          className="rounded-full px-9 py-2 font-semibold md:text-lg sm:text-3xl md:w-22 sm:w-44 normal-case text-white"
           color={"secondary"}
           variant="contained"
           onClick={followToggle}
@@ -283,10 +283,9 @@ function UserProfileContent({
   const ProfileEditBtn = () => {
     if (localStorage.getItem("id") === userProfileInfo?.id) {
       return (
-        <Button
+        <Button className="md:w-36 md:h-10 text-white font-semibold tracking-wider md:text-base sm:text-2xl sm:w-52 sm:h-16"
           color={"secondary"}
           variant="contained"
-          sx={{ textTransform: "none", color: "#fff" }}
           onClick={() => setEditProfileModalView(true)}
         >
           Edit profile
@@ -297,50 +296,50 @@ function UserProfileContent({
 
   useEffect(checkIfUserIsFollowed, [accessToken]);
   return (
-    <div className="user-profile-container">
+    <div className="user-profile-container relative">
       <div className="user-images">
         <img
           className="profile-cover"
           src={`${process.env.SERVER_PUBLIC}/${userProfileInfo?.cover}`}
         />
         <Avatar
-          className="avatar"
+          className="avatar md:size-28 sm:size-36"
           src={`${process.env.SERVER_PUBLIC}/${userProfileInfo?.pfp}`}
         />
         <div className="absolute right-6 mt-6 flex gap-2">
           {localStorage.getItem("id") !== userProfileInfo?.id && (
             <Tooltip title="Send Message" placement="top">
               <IconButton className="text-secondary-400" onClick={navToMessage}>
-                <EmailRounded />
+                <EmailRounded className="md:size-8 sm:size-16"/>
               </IconButton>
             </Tooltip>
           )}
           <FollowtoggleBtn />
-          <ProfileEditBtn />
+          <ProfileEditBtn/>
         </div>
       </div>
-      <div className="px-4">
-        <p className="font-body text-lg font-bold text-slate-800">
+      <div className="md:px-4 sm:px-4 md:pt-0 sm:pt-10">
+        <p className="font-body md:text-lg sm:text-4xl font-bold text-slate-800">
           {userProfileInfo?.fullname}
         </p>
-        <p className="text-base text-slate-500">@{userProfileInfo?.username}</p>
-        <p className="mt-1 text-base text-slate-800">{userProfileInfo?.bio}</p>
+        <p className="md:text-base sm:text-2xl text-slate-500">@{userProfileInfo?.username}</p>
+        <p className="mt-1 md:text-base sm:text-2xl py-2 text-slate-800">{userProfileInfo?.bio}</p>
         <div></div>
-        <div className="mt-2 flex gap-3">
+        <div className="mt-2 flex gap-5">
           <p
-            className="text-base text-slate-600 hover:cursor-pointer hover:underline"
+            className="md:text-base sm:text-3xl text-slate-600 hover:cursor-pointer hover:underline"
             onClick={moveToFollowerTab}
           >
-            <span className="text-base font-bold text-slate-800">
+            <span className="md:text-base sm:text-3xl font-bold text-slate-800">
               {userProfileInfo?.followersCount}
             </span>{" "}
             Followers
           </p>
           <p
-            className="font-bodt text-base text-slate-600 hover:cursor-pointer hover:underline"
+            className="md:text-base sm:text-3xl text-slate-600 hover:cursor-pointer hover:underline"
             onClick={moveToFollowingTab}
           >
-            <span className="text-base font-bold text-slate-800">
+            <span className="md:text-base sm:text-3xl font-bold text-slate-800">
               {userProfileInfo?.followingCount}
             </span>{" "}
             Following
@@ -438,28 +437,27 @@ function EditProfileModal({
         onClose={handleEditProfileModalView("close")}
       >
         <Form
-          className="edit-profile-modal"
+          className="edit-profile-modal md:min-h-[450px] md:min-w-[500px] sm:min-h-[1500px] sm:min-w-[800px]"
           action={`/profile/${usernameOrId}`}
           method="PUT"
           encType="multipart/form-data"
         >
-          <div className="header-container">
+          <div className="header-container md:py-1 sm:py-4">
             <IconButton
               className="icon-container"
               onClick={handleEditProfileModalView("close")}
             >
-              <CloseRounded className="icon" />
+              <CloseRounded className="icon md:size-8 sm:size-16" />
             </IconButton>
-            <Typography className="name" variant="h5">
+            <Typography className="name md:text-base sm:text-4xl" variant="h5">
               {userInfo.fullname}
             </Typography>
             {userRawInfo.id === localStorage.getItem("id") && (
               <Button
                 type="submit"
-                className="button"
+                className="button md:text-base md:w-10 sm:text-4xl text-center sm:w-44 md:h-10 sm:h-16 text-white"
                 variant="contained"
                 color="secondary"
-                sx={{ color: "#ffffff" }}
               >
                 Save
               </Button>
@@ -563,13 +561,21 @@ function EditProfileModal({
             </div>
           </div>
           <div className="input-container">
-            <input hidden name="id" defaultValue={userRawInfo.id} />
+            <input className="" hidden name="id" defaultValue={userRawInfo.id} />
             <TextField
               name="firstname"
               label="First Name"
               required
               value={userRawInfo.firstname}
               onChange={handleInputChange}
+              sx={{
+                "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="midlename"
@@ -577,6 +583,14 @@ function EditProfileModal({
               required
               value={userRawInfo.middlename}
               onChange={handleInputChange}
+              sx={{
+               "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="lastname"
@@ -584,6 +598,14 @@ function EditProfileModal({
               required
               value={userRawInfo.lastname}
               onChange={handleInputChange}
+              sx={{
+               "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="bio"
@@ -591,6 +613,14 @@ function EditProfileModal({
               required
               value={userRawInfo.bio}
               onChange={handleInputChange}
+              sx={{
+                "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="dateOfBirth"
@@ -602,6 +632,14 @@ function EditProfileModal({
               }}
               onChange={handleInputChange}
               defaultValue={userRawInfo.dateOfBirth?.split("T")[0]}
+              sx={{
+                "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="barangay"
@@ -609,6 +647,14 @@ function EditProfileModal({
               required
               value={userRawInfo.barangay}
               onChange={handleInputChange}
+              sx={{
+                "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="municipality"
@@ -616,6 +662,14 @@ function EditProfileModal({
               required
               value={userRawInfo.municipality}
               onChange={handleInputChange}
+              sx={{
+               "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             <TextField
               name="Province"
@@ -623,6 +677,14 @@ function EditProfileModal({
               required
               value={userRawInfo.province}
               onChange={handleInputChange}
+              sx={{
+               "& .MuiInputBase-input": {
+                  fontSize: {
+                    xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                  },
+
+                },}}
             />
             {/* <FormControl fullWidth>
               <InputLabel id="edit-profile-proffeciency">
@@ -665,6 +727,14 @@ function EditProfileModal({
                 // value={userRawInfo.affiliation}
                 onChange={handleInputChange}
                 name="affiliation"
+                sx={{
+                  "& .MuiInputBase-input": {
+                    fontSize: {
+                      xs: '30px', // Larger font for smaller screens
+                    md: '20px',
+                    },
+  
+                  },}}
               >
                 <MenuItem value="WOOD_ENTHUSIAST">Wood Ethusiast</MenuItem>
                 <MenuItem
@@ -688,6 +758,16 @@ function EditProfileModal({
                 labelId="edit-profile-gender"
                 label="Gender"
                 name="gender"
+              
+                sx={{
+                  "& .MuiInputBase-input": {
+                    fontSize: {
+                      xs: '30px', // Larger font for smaller screens
+                      md: '20px',
+                      
+                    },
+  
+                  },}}
               >
                 <MenuItem value="MALE">Male</MenuItem>
                 <MenuItem value="FEMALE">Female</MenuItem>
@@ -713,24 +793,24 @@ function FollowerElement({
 
   // const followToggle = () => {}
   return (
-    <Paper className="flex items-center gap-4 rounded-lg px-5 py-2">
+    <Paper className="flex items-center gap-4 rounded-lg px-5 py-2 md:w-full sm:w-11/12">
       <Avatar
-        className="size-[50px]"
+        className="md:size-[50px] sm:size-32"
         src={`${process.env.SERVER_PUBLIC}/${follow.pfp}`}
       />
       <div className="">
         <p
-          className="font-body font-bold text-slate-800 hover:cursor-pointer hover:underline"
+          className="md:text-base sm:text-3xl font-body font-bold text-slate-800 hover:cursor-pointer hover:underline"
           onClick={navigateToProfile}
         >
           {follow.fullname}
         </p>
-        <p className="text small font-body text-sm text-slate-600">
+        <p className="font-body md:text-sm sm:text-2xl text-slate-600">
           {follow.username}
         </p>
-        <div className="mt-1 flex items-center">
-          <LocationOnOutlined className="text-sm font-thin text-slate-500" />
-          <p className=" small font-body text-sm text-slate-500">
+        <div className="flex items-center">
+          <LocationOnOutlined className="md:text-sm sm:text-xl font-semibold text-slate-500" />
+          <p className="md:text-base sm:text-2xl text-slate-500">
             {follow.address}
           </p>
         </div>
@@ -738,7 +818,7 @@ function FollowerElement({
 
       <Button
         variant="contained"
-        className=" ml-auto normal-case text-white"
+        className=" ml-auto md:text-xs sm:text-2xl font-semibold text-white md:w-22"
         onClick={navigateToProfile}
       >
         {/* {follow.followedByTheUser ? "Unfollow" : "Follow"} */} View Profile
@@ -775,7 +855,7 @@ function FollowerList() {
         return <FollowerElement follow={follower} navigate={navigate} />;
       })}
       {!followers.length && (
-        <p className="italic text-slate-600">No followers</p>
+        <p className="italic md:text-lg sm:text-3xl text-slate-600">No followers</p>
       )}
     </>
   );
@@ -809,7 +889,7 @@ function FollowingList() {
         return <FollowerElement follow={follower} navigate={navigate} />;
       })}
       {!followers.length && (
-        <p className="italic text-slate-600">No Following</p>
+        <p className="italic md:text-lg sm:text-3xl text-slate-600">No Following</p>
       )}
     </>
   );

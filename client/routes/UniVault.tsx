@@ -74,6 +74,7 @@ export default function UniVault() {
 
   return (
 
+
     <div className="px-4 custom:w-full sm:w-11/12 text-4xl custom2:text-base">
       <h1 className="custom2:mb-4 mb-8 mt-8 text-center text-6xl custom2:text-3xl font-bold">UniVault</h1>
       <div className="flex flex-row justify-center gap-8 ">
@@ -89,6 +90,7 @@ export default function UniVault() {
           Articles
         </button>
         <button
+
           className={`mb-4 custom2:rounded-md rounded-lg px-10 custom2:py-2 py-6 transition duration-300 focus:outline-none md:mb-2  ${
             activeTab === "Trainings"
               ? "bg-prima text-white hover:bg-orange-600"

@@ -18,8 +18,8 @@ export default function Landing() {
 function Body() {
   return (
     <>
-       <div className="lg:m-10">
-          <div className="flex lg:flex-row sm:flex-col justify-center items-center lg:mx-20 sm:mx-10 sm:mt-10">
+       <div className="md:m-10">
+          <div className="flex lg:flex-row sm:flex-col justify-center items-center md:mx-20 sm:mx-10 sm:mt-10">
             <div className="flex-1 text-center font-semibold lg:text-5xl sm:text-3xl">
               <p>
                 Connect within the
@@ -81,6 +81,7 @@ function Semifooter() {
     <>
       <div className="m-10">
         <div className="flex justify-center item-center mt-28">
+
           <img src={logo} alt="" className="lg:h-80 sm:h-44"/>
         </div>
         <div className="flex lg:flex-row sm:flex-col justify-center items-center lg:mx-36 lg:my-10">
@@ -93,6 +94,7 @@ function Semifooter() {
             </p>
           </div>
           <div className="flex-1 mx-10 my-10 sm:w-full">
+
             <p className="text-center font-semibold text-3xl lg:mb-5">
               What We Do
             </p>
@@ -103,12 +105,12 @@ function Semifooter() {
         </div>
       </div>
       <div className="flex justify-center items-center space-x-7 bg-secondary-400 p-10">
-        <p className="font-semibold lg:text-3xl text-center sm:text-lg">
+        <p className="font-semibold md:text-3xl text-center sm:text-lg">
           Register to learn and be more engage within the community.
         </p>
         <Link
           to={"/login"}
-          className="lg:text-xl sm:text-based border-2 border-prima px-5 py-2 rounded-full"
+          className="md:text-xl sm:text-based border-2 border-prima px-5 py-2 rounded-full"
         >
           Register
         </Link>
@@ -126,13 +128,13 @@ function Semifooter() {
             <img
               src={logo}
               alt="logo"
-              className="lg:size-28 sm:size-16"
+              className="md:size-28 sm:size-16"
             />
           </div>
           <div className="flex ml-12 item-center">
             <Link
               to={"/login"}
-              className="lg:px-7 lg:py-2 sm:py-1 mt-3 mb-24 bg-gradient-to-r from-prima to-fourth text-tertiary rounded-md lg:text-base lg:h-10 lg:mx-5 sm:text-xs sm:h-6 lg:w-28 sm:w-16 sm:px-3"
+              className="md:px-7 md:py-2 sm:py-1 mt-3 mb-24 bg-gradient-to-r from-prima to-fourth text-tertiary rounded-md md:text-base md:h-10 md:mx-5 sm:text-xs sm:h-6 md:w-28 sm:w-16 sm:px-3"
             >
              Sign in
             </Link>

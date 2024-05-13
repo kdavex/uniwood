@@ -76,7 +76,8 @@
     height: 90%;
     max-height: 750px;
     background: map-get($background, primary);
-    border-radius: 8px;
+    border-radius: 10px;
+
     .header-container {
       position: sticky;
       top: 0;

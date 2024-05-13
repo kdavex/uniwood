@@ -22,6 +22,10 @@
     margin: 0 45px;
 
     @media (max-width: 450px) {
+
+  @media (max-width: 450px) {
+    main {
+
       grid-column: 1/-1;
       margin: 0;
     }

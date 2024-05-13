@@ -39,16 +39,22 @@ export default function Main() {
   return (
     <div className="home">
       <TabContext value={tabTarget}>
-        <TabList className="z-10" onChange={handleTabChange}>
+        <TabList className="z-10 sm:w-11/12 sm:justify-between"
+          onChange={handleTabChange}
+          variant="fullWidth">
           <Tab
             sx={{ width: "50%", fontWeight: "bold" }}
             label="For you"
             value="forYou"
+            className="md:text-base sm:text-4xl"
           />
+
           <Tab
             sx={{ width: "50%", fontWeight: "bold" }}
             label="Following"
             value="following"
+            className="md:text-base sm:text-4xl"
+
           />
         </TabList>
         <TabPanel sx={{ padding: "35px 45px" }} value="forYou">
