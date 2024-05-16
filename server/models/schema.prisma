@@ -42,20 +42,21 @@ model User {
   credential           Credential?
   posts                Post[]
   projects             Project[]
-  disliked_projets     Project[]      @relation("disliked_projects", fields: [disliked_projects_id], references: [id])
-  liked_posts          Post[]         @relation("liked_posts", fields: [liked_posts_id], references: [id])
-  disliked_posts       Post[]         @relation("disliked_posts", fields: [disliked_post_id], references: [id])
-  up_voted_comments    Comment[]      @relation("up_voted_comments", fields: [up_voted_comments_id], references: [id])
-  down_voted_comments  Comment[]      @relation("down_voted_comments", fields: [down_voted_comments_id], references: [id])
+  disliked_projets     Project[]          @relation("disliked_projects", fields: [disliked_projects_id], references: [id])
+  liked_posts          Post[]             @relation("liked_posts", fields: [liked_posts_id], references: [id])
+  disliked_posts       Post[]             @relation("disliked_posts", fields: [disliked_post_id], references: [id])
+  up_voted_comments    Comment[]          @relation("up_voted_comments", fields: [up_voted_comments_id], references: [id])
+  down_voted_comments  Comment[]          @relation("down_voted_comments", fields: [down_voted_comments_id], references: [id])
   comments             Comment[]
-  liked_projects       Project[]      @relation("liked_projects", fields: [liked_projects_id], references: [id])
-  NotificationSent     Notification[] @relation("notifTo")
-  NotificationReceived Notification[] @relation("notifBy")
-  followers            User[]         @relation("followers", fields: [follower_ids], references: [id])
-  following            User[]         @relation("followers", fields: [following_ids], references: [id])
-  SentMessages         Message[]      @relation("sentMessage")
-  ReicievedMessages    Message[]      @relation("recievedMessage")
-  Conversations        Converse[]     @relation("messengers", fields: [converse_id], references: [id])
+  liked_projects       Project[]          @relation("liked_projects", fields: [liked_projects_id], references: [id])
+  NotificationSent     Notification[]     @relation("notifTo")
+  NotificationReceived Notification[]     @relation("notifBy")
+  followers            User[]             @relation("followers", fields: [follower_ids], references: [id])
+  following            User[]             @relation("followers", fields: [following_ids], references: [id])
+  SentMessages         Message[]          @relation("sentMessage")
+  ReicievedMessages    Message[]          @relation("recievedMessage")
+  Conversations        Converse[]         @relation("messengers", fields: [converse_id], references: [id])
+  PasswordChangeOTP    PasswordChangeOTP?
 }
 
 model Post {
@@ -132,7 +133,8 @@ model Credential {
 
   user_id String @unique @db.ObjectId
 
-  user User @relation(fields: [user_id], references: [id])
+  user             User               @relation(fields: [user_id], references: [id])
+  psswordChangeOTP PasswordChangeOTP?
 }
 
 model Notification {
@@ -184,6 +186,19 @@ model Message {
 model Sample {
   test1 String @id @map("_id") @db.ObjectId
   test2 String
+}
+
+model PasswordChangeOTP {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  otp      String
+
+  user_id       String   @unique @db.ObjectId
+  credential_id String   @unique @db.ObjectId
+  createdAt     DateTime @default(now())
+
+  User       User       @relation(fields: [user_id], references: [id])
+  Credential Credential @relation(fields: [credential_id], references: [id])
 }
 
 model Test {
