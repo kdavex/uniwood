@@ -31,11 +31,46 @@ import Landing from "./routes/Landing.tsx";
 import UniVault from "./routes/UniVault.tsx";
 import VideoCall from "./routes/VideoCall.tsx";
 import { Test3 } from "./routes/Test3.tsx";
+import Forget from "./routes/forgot.tsx";
+import Confirm from "./routes/confirmpass.tsx";
+
+// Admin
+import AdminRoot from "./routes/AdminRoot.tsx";
+import AdminUser from "./routes/AdminUser.tsx";
+import AdminUnivault from "./routes/AdminUnivault.tsx";
+import AdminPost from "./routes/AdminPost.tsx";
+import AdminComment from "./routes/AdminComment.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/test",
     element: <Test />,
+  },
+  {
+    path: "/AdminRoot",
+    element: <AdminRoot />,
+    children: [
+      { index: true, element: 
+      <div className="flex justify-end items-center h-screen">
+        <p className="text-center text-6xl font-extrabold">Hello, admin. <p className="font-bold text-4xl">Do your Magic.</p></p>
+      </div> },
+      {
+        path: "AdminUser",
+        element: <AdminUser/>,
+      },
+      {
+        path: "AdminUnivault",
+        element: <AdminUnivault/>,
+      },
+      {
+        path: "AdminPost",
+        element: <AdminPost/>,
+      },
+      {
+        path: "AdminComment",
+        element: <AdminComment/>,
+      },
+    ],
   },
   {
     path: "/",
@@ -73,6 +108,18 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+    action: loginAction,
+    loader: postsLoader,
+  },
+  {
+    path: "/forgot",
+    element: <Forget />,
+    action: loginAction,
+    loader: postsLoader,
+  },
+  {
+    path: "/confirmpass",
+    element: <Confirm />,
     action: loginAction,
     loader: postsLoader,
   },
