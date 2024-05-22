@@ -18,7 +18,6 @@ import { postsAction, postsLoader } from "./api/posts.ts";
 import { loginAction } from "./api/login.ts";
 import { profileLoader } from "./api/loaders/profile.ts";
 import { loader as messageLoader } from "./api/loaders/message.ts";
-import { loader as notificationLoader } from "./api/loaders/notification.ts";
 import { loader as videoCallLoader } from "./api/loaders/videoCall.ts";
 
 // Misc
@@ -78,7 +77,6 @@ const router = createBrowserRouter([
   },
   {
     path: "/users",
-    element: <div>usersdfsdfs</div>,
     action: usersAction,
     loader: usersLoader,
   },
