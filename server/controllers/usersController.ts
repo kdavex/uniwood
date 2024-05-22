@@ -226,7 +226,7 @@ const deleteUser = async (
   // Delete User
   const deleteUser = await req.prisma.user.delete({
     where: { id: req.body.id },
-    select: {id: true}
+    select: { id: true },
   });
 
   return res.send({
@@ -234,7 +234,7 @@ const deleteUser = async (
     message: "User Successfully Deleted",
     data: {
       id: deleteUser.id,
-    }
+    },
   });
 };
 
@@ -248,6 +248,7 @@ const getAllusers = async (req: FastifyRequest, res: FastifyReply) => {
     data: allusers,
   });
 };
+
 const getNewUsers = async (
   req: FastifyRequest<{ Querystring: { count: string } }>,
   res: FastifyReply,
@@ -819,6 +820,44 @@ const getFollowings = async (
   return res.code(200).send({ status: "success", data: parsedFollowersData });
 };
 
+const verifyEmailExist = async (
+  req: FastifyRequest<{ Params: { email: string } }>,
+  res: FastifyReply,
+) => {
+  const emailExist = await req.prisma.user.findUnique({
+    where: { email: req.params.email },
+    select: { id: true },
+  });
+
+  if (emailExist)
+    return res.status(409).send({
+      status: "fail",
+      error: "ValidationError",
+      errorFields: [{ field: "email", message: "Email already exist" }],
+    });
+
+  return res.send({ status: "success", message: "Email is available" });
+};
+
+const verifyUsernameExist = async (
+  req: FastifyRequest<{ Params: { username: string } }>,
+  res: FastifyReply,
+) => {
+  const usernameExist = await req.prisma.user.findUnique({
+    where: { username: req.params.username },
+    select: { id: true },
+  });
+
+  if (usernameExist)
+    return res.status(409).send({
+      status: "fail",
+      errorName: "ValidationError",
+      errorFields: [{ field: "username", message: "Username already exist" }],
+    });
+
+  return res.send({ status: "success", message: "Username is available" });
+};
+
 export interface UserPostBody {
   username: string;
   email: string;
@@ -874,6 +913,8 @@ const userController = {
   verifyUserIfFollowed,
   getFollowings,
   getFollowers,
+  verifyEmailExist,
+  verifyUsernameExist,
 };
 
 export default userController;
