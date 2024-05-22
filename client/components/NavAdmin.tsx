@@ -10,6 +10,16 @@ import {
   LogoutRounded,
   ArticleRounded,
   ArticleOutlined,
+  ReportOutlined,
+  ReportRounded,
+  AccountCircleOutlined,
+  AccountCircleRounded,
+  CommentOutlined,
+  CommentRounded,
+  PostAddOutlined,
+  PostAddRounded,
+  DescriptionOutlined,
+  DescriptionRounded,
 } from "@mui/icons-material";
 import {
   MenuItem,
@@ -26,13 +36,13 @@ import { UserInfoContext } from "../providers/UserInfoProvider";
 import { PosterModal } from "./Poster";
 import Cookies from "js-cookie";
 
-export default function Nav() {
+export default function NavAdmin() {
   const [focusState, setFocusState] = useState({
     home: true,
-    messages: false,
-    notifications: false,
-    profile: false,
-    uniVault: false,
+    AdminUser: false,
+    AdminUnivault: false,
+    AdminPost: false,
+    AdminComments: false,
   });
 
   const [posterModalView, setPosterModalView] = useState(false);
@@ -40,23 +50,23 @@ export default function Nav() {
   const location = useLocation();
 
   const handleUrlParamsChange = () => {
-    if (location.pathname.startsWith("/message")) {
-      handleFocus("messages");
-    } else if (location.pathname.startsWith("/notification")) {
-      handleFocus("notifications");
-    } else if (location.pathname.startsWith("/profile")) {
-      handleFocus("profile");
-    } else if (location.pathname === "/") {
-      handleFocus("home");
-    } else if (location.pathname.startsWith("/univault")) {
-      handleFocus("uniVault");
+    if (location.pathname.startsWith("/AdminRoot/AdminUser")) {
+      handleFocus("AdminUser");
+    } else if (location.pathname.startsWith("/AdminRoot/AdminPost")) {
+      handleFocus("AdminPost");
+    } else if (location.pathname.startsWith("/AdminRoot/AdminComment")) {
+      handleFocus("AdminComment");
+    // } else if (location.pathname === "/") {
+    //   handleFocus("home");
+    } else if (location.pathname.startsWith("/AdminRoot/AdminUnivault")) {
+      handleFocus("AdminUnivault");
     } else {
       setFocusState({
         home: false,
-        messages: false,
-        notifications: false,
-        profile: false,
-        uniVault: false,
+        AdminUser: false,
+        AdminUnivault: false,
+        AdminPost: false,
+        AdminComments: false,
       });
     }
   };
@@ -78,25 +88,26 @@ export default function Nav() {
   const openPosterModal = () => setPosterModalView(true);
 
   return (
-    <nav className="sticky top-0  h-screen w-full flex-col justify-center custom2:flex hidden px-5">
+    <nav className=" border-r-2 sticky top-0  h-screen w-full flex-col custom2:flex hidden px-5 ">
       <img
-        className="absolute -top-4 left-1/2 mx-auto aspect-square w-[225px] -translate-x-1/2 "  
+        className="absolute -top-3 left-1/2 mx-auto aspect-square w-[225px] -translate-x-1/2 "  
         src={`${process.env.SERVER_PUBLIC}/assets/logo_label.svg`}
         alt="logo"
       />
+      <div className="pt-20"></div>
+      <p className="text-2xl text-center font-bold pt-32">Admin Dashboard</p>
       <Links focusState={focusState} />
-
       <AvatarNav />
       <PosterModal
         postModalView={posterModalView}
         setPostModalView={setPosterModalView}
       />
+      
     </nav>
   );
 }
 
 // function ButtonNav({ openPosterModal }: { openPosterModal: VoidFunc }) {
-
 
 function AvatarNav() {
   const theme = useTheme();
@@ -155,18 +166,26 @@ function AvatarNav() {
 function Links({ focusState }: { focusState: FocustStateProps }) {
   const { userInfo } = useContext(UserInfoContext)!;
   const navigate = useNavigate();
+  const [showReportDetails, setShowReportDetails] = useState(false);
 
-  const goToHome = () => navigate("/");
-  const goToMessages = () => navigate("/message");
-  const goToNotifications = () => navigate("/notification");
-  const goToProfile = () => navigate(`/profile/${userInfo.username}`);
-  const goToUniVault = () => navigate("/univault");
+  const goToAdminHome = () => navigate("/AdminRoot");
+  const goToAdminUser = () => navigate("/AdminRoot/AdminUser");
+  // const goToNotifications = () => navigate("/notification");
+  // const goToProfile = () => navigate(`/profile/${userInfo.username}`);
+  // const goToUniVault = () => navigate("/univault");
+  const goToAdminUnivault = () => navigate("/AdminRoot/AdminUnivault");
+  const goToAdminPost = () => navigate("/AdminRoot/AdminPost");
+  const goToAdminComment = () => navigate("/AdminRoot/AdminComment");
+  
+  const toggleReportDetails = () => {
+    setShowReportDetails(!showReportDetails);
+  };
 
   return (
-    <div className="mt-12">
+    <div className="mt-4">
       <MenuItem
         className="flex w-fit items-center rounded-full px-9 py-5"
-        onClick={goToHome}
+        onClick={goToAdminHome}
         selected={focusState.home ? true : false}
       >
         <ListItemIcon className="text-slate-800">
@@ -181,74 +200,93 @@ function Links({ focusState }: { focusState: FocustStateProps }) {
 
       <MenuItem
         className="flex w-fit items-center rounded-full px-9 py-5"
-        onClick={goToMessages}
-        selected={focusState.messages ? true : false}
+        onClick={goToAdminUser}
+        selected={focusState.AdminUser ? true : false}
       >
         <ListItemIcon className="text-slate-800">
-          {focusState.messages ? <MessageRounded /> : <MessageOutlined />}
+          {focusState.AdminUser ? <AccountCircleRounded /> : <AccountCircleOutlined />}
         </ListItemIcon>
         <p
-          className={`${focusState.messages ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
+          className={`${focusState.AdminUser ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
         >
-          Messages
+          User
         </p>
       </MenuItem>
+
       <MenuItem
         className="flex w-fit items-center rounded-full px-9 py-5"
-        onClick={goToUniVault}
-        selected={focusState.uniVault ? true : false}
+        onClick={goToAdminUnivault}
+        selected={focusState.AdminUnivault ? true : false}
       >
         <ListItemIcon className="text-slate-800">
-          {focusState.uniVault ? <ArticleRounded /> : <ArticleOutlined />}
+          {focusState.AdminUnivault ? <DescriptionRounded /> : <DescriptionOutlined />}
         </ListItemIcon>
         <p
-          className={`${focusState.uniVault ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
+          className={`${focusState.AdminUnivault ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
         >
-          UniVault
+          UniVault [A]
         </p>
       </MenuItem>
+
       <MenuItem
         className="flex w-fit items-center rounded-full px-9 py-5"
-        onClick={goToNotifications}
-        selected={focusState.notifications ? true : false}
+        onClick={toggleReportDetails}
+        selected={showReportDetails}
       >
         <ListItemIcon className="text-slate-800">
-          {focusState.notifications ? (
-            <NotificationsRounded />
-          ) : (
-            <NotificationsOutlined />
-          )}
+          {showReportDetails ? <ReportOutlined /> : <ReportRounded />}
         </ListItemIcon>
-        <p
-          className={`${focusState.notifications ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
-        >
-          Notifications
+        <p className="font-normal font-body text-lg text-slate-800">
+          Report
         </p>
       </MenuItem>
-      <MenuItem
-        className="flex w-fit items-center rounded-full px-9 py-5"
-        onClick={goToProfile}
-        selected={focusState.profile ? true : false}
-      >
-        <ListItemIcon className="text-slate-800">
-          {focusState.profile ? <PersonRounded /> : <PersonOutline />}
-        </ListItemIcon>
-        <p
-          className={`${focusState.profile ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
-        >
-          Profile
-        </p>
-      </MenuItem>
+
+      {showReportDetails && (
+        <div style={{ marginLeft: '1rem' }}>
+          <MenuItem
+            className="flex w-fit items-center rounded-full px-9 py-4"
+            onClick={goToAdminPost}
+            selected={focusState.AdminPost ? true : false}
+          >
+            <ListItemIcon className="text-slate-800">
+              {focusState.AdminPost ? (
+                <PostAddRounded />
+              ) : (
+                <PostAddOutlined />
+              )}
+            </ListItemIcon>
+            <p
+              className={`${focusState.AdminPost ? "font-bold" : "font-normal"} font-body text-base text-slate-800`}
+            >
+              Post
+            </p>
+          </MenuItem>
+          <MenuItem
+            className="flex w-fit items-center rounded-full px-9 py-4"
+            onClick={goToAdminComment}
+            selected={focusState.AdminComments ? true : false}
+          >
+            <ListItemIcon className="text-slate-800">
+              {focusState.AdminComments ? <CommentRounded /> : <CommentOutlined />}
+            </ListItemIcon>
+            <p
+              className={`${focusState.AdminComments ? "font-bold" : "font-normal"} font-body text-base text-slate-800`}
+            >
+              Comments
+            </p>
+          </MenuItem>
+        </div>
+      )}
     </div>
   );
 }
 
 interface FocustStateProps {
   home: boolean;
-  messages: boolean;
-  notifications: boolean;
-  profile: boolean;
-  uniVault: boolean;
+  AdminUser: boolean;
+  AdminUnivault: boolean;
+  AdminPost: boolean;
+  AdminComments: boolean;
 }
 
 type PosterModalViewAction = SetStateAction<boolean>;
