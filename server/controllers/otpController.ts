@@ -1,6 +1,11 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import { sendRegistrationOTP as mailRegistrationOtp } from "../utils/mailer";
-import { randomInt } from "node:crypto";
+import { FastifyRequest, FastifyReply } from "../types/fastify.d";
+import {
+  sendRegistrationOTP as mailRegistrationOtp,
+  sendPasswordChangeTicketLink,
+} from "../utils/mailer";
+import { randomInt, randomBytes } from "node:crypto";
+import { hashSync, compareSync } from "bcrypt";
+import { registerOTPDuration } from "../config/recordDuration";
 
 const sendRegisterOtp = async (
   req: FastifyRequest<{ Body: { email: string } }>,
@@ -24,33 +29,35 @@ const sendRegisterOtp = async (
       .send({ status: "fail", message: "Email already exist" });
 
   const sixDigitOtp = randomInt(100000, 999999).toString();
+  const hashedSixDigitOtp = hashSync(sixDigitOtp, 10);
 
   try {
     // Sent OTP via email
-    await mailRegistrationOtp(
-      { to: req.body.email },
-      { otp: sixDigitOtp.split("") },
-    );
+    mailRegistrationOtp({ to: req.body.email }, { otp: sixDigitOtp.split("") });
 
-    // Save OTP in DB
-    await req.prisma.registerOTP.create({
+    // delete previous OTP
+    await req.prisma.registerOTP.deleteMany({
+      where: {
+        email,
+      },
+    });
+
+    // Save hashedOTP in DB
+    const otpDoc = await req.prisma.registerOTP.create({
       data: {
         email,
-        otp: sixDigitOtp,
+        otp: hashedSixDigitOtp,
       },
     });
 
     // Delete OTP after 30 minutes
-    setTimeout(
-      async () => {
-        await req.prisma.registerOTP.delete({
-          where: {
-            email,
-          },
-        });
-      },
-      1000 * 60 * 30,
-    );
+    setTimeout(async () => {
+      req.prisma.registerOTP.delete({
+        where: {
+          id: otpDoc.id,
+        },
+      });
+    }, registerOTPDuration);
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -78,6 +85,7 @@ const verifyRegistrationOtp = async (
     },
   });
 
+
   // Check if email exist
   if (!emailExist)
     return res.status(404).send({
@@ -86,8 +94,11 @@ const verifyRegistrationOtp = async (
       message: "Email not found",
     });
 
-  // Check if email matched
-  if (emailExist.otp !== req.body.otp)
+  console.log(compareSync(req.body.otp, emailExist.otp));
+
+  // Check if otpMatched matched
+  console.log(req.body.otp, emailExist.otp)
+  if (!compareSync(req.body.otp, emailExist.otp))
     return res.status(400).send({
       status: "fail",
       error: "InvalidOTP",
