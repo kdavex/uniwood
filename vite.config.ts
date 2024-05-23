@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import fs from "node:fs";
 import { resolve } from "node:path";
 
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -22,6 +23,7 @@ export default defineConfig(({ mode }) => {
       commonjsOptions: {
         transformMixedEsModules: true,
       },
+      sourcemap: "inline",
     },
 
     server: {
@@ -36,6 +38,7 @@ export default defineConfig(({ mode }) => {
         ),
       },
       watch: {
+        include: ["client"],
         ignored: ["node_modules", "server"],
       },
     },

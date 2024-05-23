@@ -1,97 +1,53 @@
-import React, { useState, useEffect } from "react";
-import { IconButton } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import React, { useState, useEffect, useContext, act } from "react";
+import { IconButton, ListItemSecondaryAction } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import {
+  Menu,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from "@mui/material";
+import axiosClient from "../utils/axios";
+import { AlertContext } from "../providers/AlertProvider";
 
 export default function UniVault() {
-  const [activeTab, setActiveTab] = useState("Articles");
+  const [activeTab, setActiveTab] = useState<"Articles" | "Trainings">(
+    "Articles",
+  );
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [trainings, setTrainings] = useState<Training[]>([]);
 
-  const articles = {
-    links: [
-      {
-        id: 1,
-        title: "The Artisans from Bataan Peninsula",
-        description:
-          "Discover the skilled artisans and their craftsmanship in Bataan Peninsula. Explore their traditional techniques and the cultural heritage they preserve.",
-        author: "Maritess Garcia Reyes",
-        link: "https://www.tatlerasia.com/homes/architecture-design/the-artisans-from-bataan-peninsula",
-      },
-      {
-        id: 2,
-        title:
-          "Staying in Heritage: Revisiting the Las Casas Filipinas de Acuzar in Bagac, Bataan",
-        description:
-          "Experience the charm and history of Las Casas Filipinas de Acuzar in Bagac, Bataan. Immerse yourself in the rich cultural tapestry of this heritage site.",
-        author: "Reuben Cañete",
-        link: "https://bluprint-onemega.com/staying-in-heritage-revisiting-the-las-casas-filipinas-de-acuzar-in-bagac-bataan/",
-      },
-      {
-        id: 3,
-        title: "Exploring Real Estate Opportunities in Bataan",
-        description:
-          "Discover the potential of Bataans real estate market. Learn about investment opportunities and the growing economy of this vibrant province.",
-        author: "Philippine Real Estate",
-        link: "https://philippine-real-estate.com/blog/bataan/",
-      },
-      {
-        id: 4,
-        title: "Community Initiatives in Bataan: The Guilds BPSU",
-        description:
-          "Learn about the community initiatives led by The Guilds BPSU in Bataan. Discover their projects aimed at fostering education and sustainable development.",
-        author: "Kesia Jamel Corton",
-        link: "https://www.facebook.com/theguildsbpsu/posts/pfbid026FMWchAfeJFYNeMw8TzZDDy5bXMdUwBdXMZGL7UwRdanJPVwHpqF2Nf8JhQyhD8Xl",
-      },
-      {
-        id: 5,
-        title: "Empowering Women through Wood Mosaic Making in Bataan",
-        description:
-          "Explore the empowering journey of women in Bataan through wood mosaic making. Learn about their skills, creativity, and contribution to the community.",
-        author: "Loi Balbaloza",
-        link: "https://1bataan.com/wood-mosaic-making-an-epitome-of-women-empowerment/",
-      },
-      // Add more articles as needed
-    ],
-  };
+  const content = (activeTab === "Articles" ? articles : trainings) as
+    | Training[]
+    | Article[];
 
-  const trainings = {
-    links: [
-      {
-        id: 1,
-        title: "Woodworking Essentials: A Guide from Wood Academy PH",
-        description:
-          "Master the fundamentals of woodworking with this comprehensive guide from Wood Academy PH. Learn essential techniques and tips for woodworking enthusiasts.",
-        link: "https://www.facebook.com/woodacademyPH",
-      },
-      {
-        id: 2,
-        title: "Carpentry Training Program in Pampanga by TESDA",
-        description:
-          "Join the carpentry training program offered by TESDA in Pampanga. Develop your carpentry skills and gain valuable knowledge for a successful career in woodworking.",
-        link: "https://tesda.gov.ph/Tvi/Result?SearchCourse=Carpentry&SearchIns=&SearchLoc=pampanga",
-      },
-      // Add more trainings as needed
-    ],
-  };
-
-  const content = activeTab === "Articles" ? articles.links : trainings.links;
-
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState(null);
+  const [currentItem, setCurrentItem] = useState<Article | Training | null>(
+    null,
+  );
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const { setAlert } = useContext(AlertContext)!;
 
   const handleAdd = () => {
     setAddModalOpen(true);
   };
-  
+
   const handleCloseAddModal = () => {
     setAddModalOpen(false);
   };
 
-  const handleClick = (event, item) => {
-    setAnchorEl(event.currentTarget);
+  const handleClick = (
+    event: React.MouseEvent<SVGSVGElement, MouseEvent>,
+    item: Training | Article,
+  ) => {
+    setAnchorEl(event.currentTarget as unknown as HTMLElement);
     setCurrentItem(item);
   };
 
@@ -117,11 +73,208 @@ export default function UniVault() {
     setDeleteModalOpen(false);
   };
 
+  const initializeArticlesAndTrainings = () => {
+    axiosClient.get("/articles").then((res) => {
+      setArticles(res.data.data);
+    });
+
+    axiosClient.get("/trainings").then((res) => {
+      setTrainings(res.data.data);
+    });
+  };
+
+  const handleCreateTrainingOrArticle = (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+
+    // create training
+    if (activeTab === "Trainings") {
+      const form = new FormData(e.currentTarget);
+      const training = {
+        title: form.get("title") as string,
+        description: form.get("description") as string,
+        link: form.get("link") as string,
+      };
+      axiosClient
+        .post("/trainings", training)
+        .then((res) => {
+          setTrainings([res.data.data, ...trainings]);
+          handleCloseAddModal();
+          setAlert({
+            visible: true,
+            message: "Training created successfully",
+            severity: "success",
+          });
+        })
+        .catch((err) => {
+          setAlert({
+            visible: true,
+            message: "An error occurred whie creating the training ",
+            severity: "error",
+          });
+        });
+    }
+
+    if (activeTab === "Articles") {
+      const form = new FormData(e.currentTarget);
+      const article = {
+        title: form.get("title") as string,
+        description: form.get("description") as string,
+        author: form.get("author") as string,
+        link: form.get("link") as string,
+      };
+
+      axiosClient
+        .post("/articles", article)
+        .then((res) => {
+          setArticles([res.data.data, ...articles]);
+          handleCloseAddModal();
+          setAlert({
+            visible: true,
+            message: "Article created successfully",
+            severity: "success",
+          });
+        })
+        .catch((err) => {
+          setAlert({
+            visible: true,
+            message: "An error occurred while creating the article",
+            severity: "error",
+          });
+        });
+    }
+  };
+
+  const handleUpdateTrainingOrArticle = (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+
+    // update training
+    if (activeTab === "Trainings") {
+      const form = new FormData(e.currentTarget);
+      const training = {
+        trainingId: currentItem?.id,
+        title: form.get("title") as string,
+        description: form.get("description") as string,
+        link: form.get("link") as string,
+      };
+      axiosClient
+        .put(`/trainings`, training)
+        .then((res) => {
+          setTrainings(
+            trainings.map((training) =>
+              training.id === currentItem?.id ? res.data.data : training,
+            ),
+          );
+          handleCloseEditModal();
+          setAlert({
+            visible: true,
+            message: "Training updated successfully",
+            severity: "success",
+          });
+        })
+        .catch(() => {
+          setAlert({
+            visible: true,
+            message: "An error occurred while updating the training",
+            severity: "error",
+          });
+        });
+    }
+
+    // update article
+    if (activeTab === "Articles") {
+      const form = new FormData(e.currentTarget);
+      const article = {
+        articleId: currentItem?.id,
+        title: form.get("title") as string,
+        description: form.get("description") as string,
+        link: form.get("link") as string,
+        author: form.get("author") as string,
+      };
+
+      axiosClient
+        .put(`/articles`, article)
+        .then((res) => {
+          setArticles(
+            articles.map((article) =>
+              article.id === currentItem?.id ? res.data.data : article,
+            ),
+          );
+          handleCloseEditModal();
+          setAlert({
+            visible: true,
+            message: "Article updated successfully",
+            severity: "success",
+          });
+        })
+        .catch(() => {
+          setAlert({
+            visible: true,
+            message: "An error occurred while updating the article",
+            severity: "error",
+          });
+        });
+    }
+  };
+
+  const handleDeleteTrainingOrArticle = (id: string | undefined) => {
+    if (!id) return;
+
+    // delete training
+    if (activeTab === "Trainings") {
+      axiosClient
+        .delete(`/trainings/${id}`)
+        .then(() => {
+          setTrainings(trainings.filter((training) => training.id !== id));
+          handleCloseDeleteModal();
+          setAlert({
+            visible: true,
+            message: "Training deleted successfully",
+            severity: "success",
+          });
+        })
+        .catch(() => {
+          setAlert({
+            visible: true,
+            message: "An error occurred while deleting the training",
+            severity: "error",
+          });
+        });
+    }
+
+    // delete article
+    if (activeTab === "Articles") {
+      axiosClient
+        .delete(`/articles/${id}`)
+        .then(() => {
+          setArticles(articles.filter((article) => article.id !== id));
+          handleCloseDeleteModal();
+          setAlert({
+            visible: true,
+            message: "Article deleted successfully",
+            severity: "success",
+          });
+        })
+        .catch(() => {
+          setAlert({
+            visible: true,
+            message: "An error occurred while deleting the article",
+            severity: "error",
+          });
+        });
+    }
+  };
+
+  useEffect(initializeArticlesAndTrainings, []);
+
   return (
-    <div className="relative top-0 left-36 right-0 bottom-20">
-      <div className="px-4 custom:w-full sm:w-11/12 text-4xl custom2:text-base">
-        <div className="relative mt-8 mb-8 custom2:mb-4 flex items-center justify-center">
-          <h1 className="text-6xl custom2:text-3xl font-bold absolute left-1/2 transform -translate-x-1/2">
+    <div className="relative bottom-20 left-36 right-0 top-0">
+      <div className="px-4 text-4xl sm:w-11/12 custom2:text-base custom:w-full">
+        <div className="relative mb-8 mt-8 flex items-center justify-center custom2:mb-4">
+          <h1 className="absolute left-1/2 -translate-x-1/2 transform text-6xl font-bold custom2:text-3xl">
             UniVault
           </h1>
           <div className="ml-auto">
@@ -132,18 +285,22 @@ export default function UniVault() {
         </div>
         <div className="flex flex-row justify-center gap-8">
           <button
-            className={`mb-4 custom2:rounded-md rounded-lg px-10 custom2:py-2 py-6 transition duration-300 focus:outline-none md:mb-2 ${
-              activeTab === 'Articles' ? 'bg-prima text-white hover:bg-orange-600' : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+            className={`mb-4 rounded-lg px-10 py-6 transition duration-300 focus:outline-none custom2:rounded-md custom2:py-2 md:mb-2 ${
+              activeTab === "Articles"
+                ? "bg-prima text-white hover:bg-orange-600"
+                : "bg-gray-300 text-gray-700 hover:bg-gray-400"
             }`}
-            onClick={() => setActiveTab('Articles')}
+            onClick={() => setActiveTab("Articles")}
           >
             Articles
           </button>
           <button
-            className={`mb-4 custom2:rounded-md rounded-lg px-10 custom2:py-2 py-6 transition duration-300 focus:outline-none md:mb-2 ${
-              activeTab === 'Trainings' ? 'bg-prima text-white hover:bg-orange-600' : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+            className={`mb-4 rounded-lg px-10 py-6 transition duration-300 focus:outline-none custom2:rounded-md custom2:py-2 md:mb-2 ${
+              activeTab === "Trainings"
+                ? "bg-prima text-white hover:bg-orange-600"
+                : "bg-gray-300 text-gray-700 hover:bg-gray-400"
             }`}
-            onClick={() => setActiveTab('Trainings')}
+            onClick={() => setActiveTab("Trainings")}
           >
             Trainings
           </button>
@@ -152,7 +309,7 @@ export default function UniVault() {
           {content.map((item) => (
             <div key={item.id} className="relative mb-10 custom2:mb-4">
               <MoreHorizIcon
-                className="absolute top-2 right-3 text-4xl text-gray-500 cursor-pointer"
+                className="absolute right-3 top-2 cursor-pointer text-4xl text-gray-500"
                 onClick={(e) => handleClick(e, item)}
               />
               <Menu
@@ -160,26 +317,34 @@ export default function UniVault() {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem className=" font-semibold py-3" onClick={handleEdit}>Edit</MenuItem>
-                <MenuItem className=" font-semibold py-3" onClick={handleDelete}>Delete</MenuItem>
-              </Menu>
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div
-                  className={`mb-10 custom2:mb-4 custom2:p-6 p-10 cursor-pointer rounded-lg bg-white shadow-md transition duration-300 hover:shadow-lg`}
+                <MenuItem className=" py-3 font-semibold" onClick={handleEdit}>
+                  Edit
+                </MenuItem>
+                <MenuItem
+                  className=" py-3 font-semibold"
+                  onClick={handleDelete}
                 >
-                  <h2 className="custom2:mb-2 mb-5 text-4xl custom2:text-lg font-bold">{item.title}</h2>
+                  Delete
+                </MenuItem>
+              </Menu>
+              <a href={item.link} target="_blank" rel="noopener noreferrer">
+                <div
+                  className={`mb-10 cursor-pointer rounded-lg bg-white p-10 shadow-md transition duration-300 hover:shadow-lg custom2:mb-4 custom2:p-6`}
+                >
+                  <h2 className="mb-5 text-4xl font-bold custom2:mb-2 custom2:text-lg">
+                    {item.title}
+                  </h2>
                   <p
-                    className="mb-4 overflow-hidden text-2xl custom2:text-sm text-gray-600"
-                    style={{ textOverflow: 'ellipsis', maxHeight: '3em' }}
+                    className="mb-4 overflow-hidden text-2xl text-gray-600 custom2:text-sm"
+                    style={{ textOverflow: "ellipsis", maxHeight: "3em" }}
                   >
                     {item.description}
                   </p>
+
                   {item.author && (
-                    <p className="text-xl custom2:text-xs text-gray-500">Author: {item.author}</p>
+                    <p className="text-xl text-gray-500 custom2:text-xs">
+                      Author: {item.author}
+                    </p>
                   )}
                 </div>
               </a>
@@ -190,47 +355,57 @@ export default function UniVault() {
 
       {/* Edit Modal */}
       <Dialog className="" open={editModalOpen} onClose={handleCloseEditModal}>
-        <DialogTitle>Edit Item</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Title"
-            type="text"
-            fullWidth
-            defaultValue={currentItem?.title}
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            type="text"
-            fullWidth
-            defaultValue={currentItem?.description}
-          />
-          {currentItem?.author && (
+        <form onSubmit={handleUpdateTrainingOrArticle}>
+          <DialogTitle>Edit Item</DialogTitle>
+          <DialogContent>
             <TextField
               margin="dense"
-              label="Author"
+              name="title"
+              label="Title"
               type="text"
               fullWidth
-              defaultValue={currentItem?.author}
+              defaultValue={currentItem?.title}
             />
-          )}
-          <TextField
-            margin="dense"
-            label="Link"
-            type="url"
-            fullWidth
-            defaultValue={currentItem?.link}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditModal} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleCloseEditModal} color="primary">
-            Save
-          </Button>
-        </DialogActions>
+            <TextField
+              margin="dense"
+              name="description"
+              label="Description"
+              type="text"
+              fullWidth
+              defaultValue={currentItem?.description}
+            />
+            {currentItem?.author && (
+              <TextField
+                margin="dense"
+                name="author"
+                label="Author"
+                type="text"
+                fullWidth
+                defaultValue={currentItem?.author}
+              />
+            )}
+            <TextField
+              margin="dense"
+              name="link"
+              label="Link"
+              type="url"
+              fullWidth
+              defaultValue={currentItem?.link}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEditModal} color="primary">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={handleCloseEditModal}
+              color="primary"
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </form>
       </Dialog>
 
       {/* Delete Modal */}
@@ -243,51 +418,78 @@ export default function UniVault() {
           <Button onClick={handleCloseDeleteModal} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleCloseDeleteModal} color="primary">
+          <Button
+            onClick={(e) => handleDeleteTrainingOrArticle(currentItem?.id)}
+            color="primary"
+          >
             Delete
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={addModalOpen} onClose={handleCloseAddModal}>
-        <DialogTitle>Add New {activeTab === 'Articles' ? 'Article' : 'Training'}</DialogTitle>
-        <DialogContent>
+        <form onSubmit={handleCreateTrainingOrArticle}>
+          <DialogTitle>
+            Add New {activeTab === "Articles" ? "Article" : "Trainings"}
+          </DialogTitle>
+          <DialogContent>
             <TextField
-            margin="dense"
-            label="Title"
-            type="text"
-            fullWidth
+              margin="dense"
+              label="Title"
+              type="text"
+              name="title"
+              fullWidth
             />
             <TextField
-            margin="dense"
-            label="Description"
-            type="text"
-            fullWidth
+              margin="dense"
+              name="description"
+              label="Description"
+              type="text"
+              fullWidth
             />
-            {activeTab === 'Articles' && (
-            <TextField
+            {activeTab === "Articles" && (
+              <TextField
                 margin="dense"
+                name="author"
                 label="Author"
                 type="text"
                 fullWidth
-            />
+              />
             )}
             <TextField
-            margin="dense"
-            label="Link"
-            type="url"
-            fullWidth
+              margin="dense"
+              label="Link"
+              name="link"
+              type="url"
+              fullWidth
             />
-        </DialogContent>
-        <DialogActions>
+          </DialogContent>
+          <DialogActions>
             <Button onClick={handleCloseAddModal} color="primary">
-            Cancel
+              Cancel
             </Button>
-            <Button onClick={handleCloseAddModal} color="primary">
-            Add
+            <Button type="submit" color="primary">
+              Add
             </Button>
-        </DialogActions>
-        </Dialog>
+          </DialogActions>
+        </form>
+      </Dialog>
     </div>
   );
-};
+}
+
+interface Article {
+  id: string;
+  title: string;
+  description: string;
+  author: string;
+  link: string;
+}
+
+interface Training {
+  id: string;
+  title: string;
+  description: string;
+  link: string;
+  author?: string;
+}

@@ -4,6 +4,7 @@ module.exports = {
   important: true,
   output: "./client/tailwind.css",
   content: [
+    "./index.html",
     "./client/routes/**/*.tsx",
     "./client/components/**/*.tsx",
     "./client/*.{tsx,html}",

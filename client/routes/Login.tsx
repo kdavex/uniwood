@@ -7,9 +7,7 @@ import {
   Fade,
   FormControl,
   IconButton,
-  InputAdornment,
   InputLabel,
-  LinearProgress,
   MenuItem,
   Modal,
   Select,
@@ -364,11 +362,11 @@ function LoginForm({
         onChange={handleClearInputError}
       />
       <Link
-          to={"/forgot"}
-          className="md:text-sm sm:text-based mb-[20px] text-blue-800 hover:text-blue-500"
-        >
-          Forgot Password? Click here
-        </Link>
+        to={"/forgotPassword"}
+        className=" mb-[20px] font-body text-sm text-blue-600 hover:text-blue-800 hover:underline"
+      >
+        Forgot Password ?
+      </Link>
       <Button
         type="submit"
         className="login-button mb-[15px] block font-bold normal-case text-white"
@@ -421,6 +419,12 @@ function PersonalInfoForm({
   const [genderSelect, setGenderSelect] = useState("");
   const [affiliationSelect, setAffiliationSelect] = useState("");
   const [userInfo, setUserInfo] = useState<any>({});
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedMunicipality, setSelectedMunicipality] = useState("");
+  const [selectedBarangay, setSelectedBarangay] = useState("");
+  const [provinces, setProvinces] = useState<string[]>([]);
+  const [municipalities, setMunicipalities] = useState<string[]>([]);
+  const [barangays, setBarangays] = useState<string[]>([]);
 
   const initializeStateFormData = () => {
     if (!rFormData.current) return;
@@ -432,9 +436,44 @@ function PersonalInfoForm({
 
       if (key === "affiliation") setAffiliationSelect(value as string);
       if (key === "gender") setGenderSelect(value as string);
+      if (key === "province") setSelectedProvince(value as string);
+      if (key === "municipality") setSelectedMunicipality(value as string);
+      if (key === "barangay") setSelectedBarangay(value as string);
     });
 
     setUserInfo(userInfo);
+  };
+
+  const initializeProvincesList = () => {
+    axiosClient.get("/address/provinces").then((res) => {
+      setProvinces(res.data.data);
+    });
+  };
+
+  const handleProvinceChange = () => {
+    if (selectedProvince === "") return;
+    axiosClient
+      .get(
+        `/address/municipalities?province=${selectedProvince.replace(" ", "+")}`,
+      )
+      .then((res) => {
+        setMunicipalities(res.data.data);
+        setBarangays([]);
+      });
+  };
+
+  const handleMunicipalityChange = () => {
+    if (!selectedMunicipality || !selectedProvince) return;
+    axiosClient
+      .get(
+        `/address/barangays?province=${selectedProvince.replace(
+          " ",
+          "+",
+        )}&municipality=${selectedMunicipality.replace(" ", "+")}`,
+      )
+      .then((res) => {
+        setBarangays(res.data.data);
+      });
   };
 
   const handleTexfieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -459,156 +498,25 @@ function PersonalInfoForm({
       rFormData.current.append(key, value);
       formDataEntry = formIteratable.next();
     }
+    rFormData.current.append("province", selectedProvince);
+    rFormData.current.append("municipality", selectedMunicipality);
+    rFormData.current.append("barangay", selectedBarangay);
     dispatchStepValue("next");
+  };
+
+  const handleAddressChange = (e: SelectChangeEvent<string>) => {
+    if (e.target.name === "province") setSelectedProvince(e.target.value);
+    else if (e.target.name === "municipality")
+      setSelectedMunicipality(e.target.value);
+    else if (e.target.name === "barangay") setSelectedBarangay(e.target.value);
   };
 
   const hiddenStatus = stepValue === 0 ? "block" : "hidden";
 
-  const centralLuzonData = {
-    'Aurora': {
-      'Baler': ['Barangay I', 'Barangay II', 'Barangay III', 'Barangay IV'],
-      'Casiguran': ['Barangay I', 'Barangay II', 'Barangay III', 'Barangay IV'],
-      'Dilasag': ['Esperanza', 'Dikapinisan', 'Dibacong', 'Dimaseset', 'Diniog', 'Laboy', 'Madayum', 'Malasin', 'Masagana', 'Poblacion'],
-      'Dinalungan': ['Abuleg', 'Dibaraybay', 'Dikapintan', 'L. Pimentel', 'Mapalad', 'Napolidan', 'Poblacion', 'Zone I', 'Zone II'],
-      'Dingalan': ['Aplaya', 'Butas na Bato', 'Caragsacan', 'Davildavilan', 'Ibona', 'Paltic', 'Poblacion', 'San Vicente', 'Tanawan', 'Umiray'],
-      'Dipaculao': ['Dibutunan', 'Dinadiawan', 'Borlongan', 'Gupa', 'Liberty', 'Maligaya', 'Poblacion', 'Esteves', 'Buenavista', 'San Isidro'],
-      'Maria Aurora': ['Bagtu', 'Baubo', 'Bayanihan', 'Decoliat', 'Diaz', 'Diaz-Lupa', 'Dimabuno', 'Kadayakan', 'Malasin', 'Punglo'],
-      'San Luis': ['Dimanayat', 'Dibalo', 'Lipay', 'Diteki', 'Nonong', 'Poblacion', 'Santa Rosa', 'Zaragoza']
-  },
-  'Bataan': {
-    'Abucay': ['Bangkal', 'Calaylayan', 'Gorda', 'Laon', 'Mabatang', 'Omboy', 'Salapungan', 'Santo Niño'],
-    'Bagac': ['Atilano L. Ricardo', 'Bagumbayan', 'Banawang', 'Binuangan', 'Ibaba', 'Parang', 'Paysawan', 'Pag-asa', 'Quinawan', 'Tabing-Ilog'],
-    'Balanga': ['Bagong Silang', 'Cupang North', 'Cupang Proper', 'Dangcol', 'Doña Francisca', 'Ibayo', 'Malabia', 'Poblacion', 'San Jose', 'San Juan'],
-    'Dinalupihan': ['Colo', 'Pagalanggang', 'Pentor', 'Pinulot', 'San Benito', 'San Isidro', 'Santa Isabel', 'Torres', 'Tuol', 'Zamora'],
-    'Hermosa': ['Almacen', 'Balsik', 'Bacong', 'Burgos-San Pedro', 'Cataning', 'General Lim', 'Mabiga', 'Mabuhay', 'Palihan', 'Pulo'],
-    'Limay': ['Alangan', 'Duale', 'Lamao', 'Reformista', 'Saint Francis', 'San Francisco', 'Townsite', 'Wawa'],
-    'Mariveles': ['Alas-asin', 'Balon Anito', 'Baseco Country', 'Biaan', 'Cabcaben', 'Camaya', 'Malaya', 'Maligaya', 'Poblacion', 'San Carlos'],
-    'Morong': ['Binaritan', 'Mabayo', 'Nagbalayong', 'Poblacion', 'Sabang', 'Tangway', 'Tucop'],
-    'Orani': ['Apollo', 'Balut', 'Bayan', 'Calero', 'Centro', 'Daang-Bago', 'Kalayaan', 'Mulawin', 'Poblacion', 'Silahis'],
-    'Orion': ['Balagtas', 'Bilolo', 'Calungusan', 'Daan-Bago', 'General Lim', 'Kaput', 'Lati', 'Lusungan', 'Palili', 'Puting Buhangin'],
-    'Pilar': ['Ala-uli', 'Bagumbayan', 'Balut', 'Landing', 'Liyang', 'Nagwaling', 'Nagwaling Proper', 'Poblacion', 'San Isidro', 'Santa Rosa'],
-    'Samal': ['East Calaguiman', 'Gugo', 'Ibaba', 'Lalawigan', 'Palili', 'Samat', 'Sapa', 'Santa Lucia', 'Santa Monica', 'Tabing-Ilog']
-},
-'Bulacan': {
-  'Malolos': ['Anilao', 'Atlag', 'Bagna', 'Balayong', 'Balite', 'Bangkal'],
-  'Meycauayan': ['Bagbaguin', 'Bahay Pare', 'Bancal', 'Banga', 'Bayugo', 'Caingin'],
-  'Baliuag': ['Bagong Nayon', 'Barangca', 'Calantipay', 'Catulinan', 'Concepcion', 'Makinabang'],
-  'Bocaue': ['Antipona', 'Bagumbayan', 'Bambang', 'Batia', 'Biñang 1st', 'Biñang 2nd'],
-  'Bulakan': ['Bagumbayan', 'Bambang', 'Balubad', 'Matungao', 'Perez', 'Pitpitan'],
-  'Hagonoy': ['Abulalas', 'Iba', 'Iba-Ibayo', 'Palapat', 'Pugad', 'San Agustin'],
-  'Marilao': ['Abangan Norte', 'Abangan Sur', 'Ibayo', 'Loma de Gato', 'Nagbalon', 'Poblacion I'],
-  'Norzagaray': ['Bangkal', 'Baraka', 'Bigte', 'Minuyan', 'Poblacion', 'San Mateo'],
-  'Obando': ['Binuangan', 'Lawa', 'Pag-asa', 'Paliwas', 'Pansumaloc', 'Poblacion'],
-  'Plaridel': ['Agnaya', 'Bagong Silang', 'Banga 1st', 'Banga 2nd', 'Bintog', 'Bunsuran 1st'],
-  'Pulilan': ['Balatong A', 'Balatong B', 'Cutcot', 'Dampol 1st', 'Dampol 2nd', 'Dulong Malabon'],
-  'San Ildefonso': ['Alagao', 'Anyatam', 'Balatong A', 'Balatong B', 'Bancal', 'Basuit'],
-  'San Jose del Monte': ['Bagong Buhay I', 'Bagong Buhay II', 'Citrus', 'Dulong Bayan', 'Fatangas', 'Francisco Homes-Guijo'],
-  'Santa Maria': ['Bagbaguin', 'Balasing', 'Buenavista', 'Bulac', 'Camangyanan', 'Catmon']
-},
-'Nueva Ecija': {
-  'Cabanatuan': ['Bagong Sikat', 'Bakero', 'D.S. Garcia', 'General Luna', 'Hermogenes Concepcion', 'Imelda'],
-  'Gapan': ['Balante', 'Bayanihan', 'Bungo', 'Caridad Norte', 'Caridad Sur', 'Kapitangan'],
-  'San Jose': ['A. Pascual', 'Abar 1st', 'Abar 2nd', 'Adorable', 'Bagong Sikat', 'Barangay 1'],
-  'Palayan': ['Aulo', 'Bagong Buhay', 'Caimito', 'Doña Josefa', 'Ganaderia', 'Imelda Valley'],
-  'Santa Rosa': ['Avenida', 'Burgos', 'Cruz', 'Del Pilar', 'Isla', 'La Fuente'],
-  'Talavera': ['Andal Alino', 'Bagong Sikat', 'Bakero', 'Bantug', 'Bugtong na Buli', 'Calipahan'],
-  'San Leonardo': ['Baliuag', 'Bancal', 'Bantug', 'Bonifacio', 'Castellano', 'Diverse'],
-  'General Tinio': ['Bago', 'Concepcion', 'Natividad', 'Padolina', 'Poblacion East', 'Rio Chico'],
-  'Peñaranda': ['Callos', 'Las Piñas', 'Poblacion 1', 'Poblacion 2', 'Santo Tomas', 'Sinasajan'],
-  'Zaragoza': ['Concepcion', 'Del Pilar', 'Esperanza', 'La Purisima', 'Manggahan', 'San Rafael'],
-  'Quezon': ['Bayanan', 'Bicos', 'Doña Lucia', 'Kabisera 1', 'Kabisera 10', 'Kabisera 11'],
-  'Licab': ['Avenida', 'Bantug', 'Dilaing Bato', 'Lourdes', 'San Cristobal', 'Tabing Ilog'],
-  'Jaen': ['Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6'],
-  'Guimba': ['Adorable', 'Bantug', 'Banitan', 'Camiing', 'Cavite', 'Macamias'],
-  'Aliaga': ['Betes', 'Bibiclat', 'Bucot', 'La Purisima', 'Poblacion East 1', 'San Eustacio'],
-  'Nampicuan': ['Ambitacay', 'Bantug', 'Cabugao', 'East Central', 'Mayantoc', 'West Central'],
-  'Carranglan': ['Baluarte', 'Bantug', 'Bunga', 'Digdig', 'Gundaway', 'T. Syquia'],
-  'Llanera': ['Bagumbayan', 'Caridad Norte', 'Caridad Sur', 'Ligaya', 'San Felipe', 'Victoria'],
-  'Pantabangan': ['Cadaclan', 'Callejon', 'East Poblacion', 'Liberty', 'Malbang', 'Napon-Napon'],
-  'Cuyapo': ['Baloy', 'Bantug', 'Bantug West', 'Bonifacio', 'Cabrera', 'Nagmisaan'],
-  'Gabaldon': ['Bagong Sikat', 'Bantug', 'Calabasa', 'Ligaya', 'Pantoc', 'Tagumpay']
-},
-'Pampanga': {
-  'Angeles': ['Agapito del Rosario', 'Amsic', 'Anunas', 'Balibago', 'Capaya', 'Claro M. Recto'],
-  'San Fernando': ['Alasas', 'Baliti', 'Bulaon', 'Calulut', 'Dela Paz Norte', 'Dela Paz Sur'],
-  'Apalit': ['Balucuc', 'Calantipe', 'Cansinala', 'Capalangan', 'Paligui', 'San Juan'],
-  'Arayat': ['Arenas', 'Baliti', 'Candating', 'Cupang', 'Gatiawin', 'Lacmit'],
-  'Bacolor': ['Balas', 'Cabalantian', 'Cabetican', 'Calibutbut', 'Dolores', 'San Antonio'],
-  'Candaba': ['Bambang', 'Barit', 'Buena Vista', 'Dalayap', 'Gulap', 'Mandasig'],
-  'Floridablanca': ['Anon', 'Apalit', 'Basa Air Base', 'Benigno', 'Consuelo', 'San Antonio'],
-  'Guagua': ['Ascomo', 'Bancal', 'Dila-Dila', 'Jose Abad Santos', 'Lambac', 'San Rafael'],
-  'Lubao': ['Bancal Sinubli', 'Calangain', 'Concepcion', 'Del Carmen', 'Remedios', 'San Agustin'],
-  'Mabalacat': ['Atlu-Bola', 'Cacutud', 'Camachiles', 'Dapdap', 'Mabiga', 'San Francisco'],
-  'Macabebe': ['Caduang Tete', 'Castuli', 'Consuelo', 'Dalayap', 'San Gabriel', 'Saplad David'],
-  'Magalang': ['Ayala', 'Camias', 'Escaler', 'Navaling', 'San Agustin', 'Santa Lucia'],
-  'Masantol': ['Bagang', 'Bebe Anac', 'Bebe Matua', 'San Isidro Matua', 'San Nicolas', 'Santo Rosario'],
-  'Mexico': ['Anao', 'Balas', 'Bamban', 'Buenaventura', 'Camuning', 'Lagundi'],
-  'Minalin': ['Bulac', 'Dawe', 'Lourdes', 'San Francisco 1st', 'San Pedro', 'Santa Maria'],
-  'Porac': ['Camias', 'Cangatba', 'Dolores', 'Hacienda Dolores', 'Inararo', 'Manibaug Libutad'],
-  'San Luis': ['San Agustin', 'San Carlos', 'San Isidro', 'San Jose', 'San Juan', 'Santa Cruz'],
-  'San Simon': ['Concepcion', 'De La Paz', 'San Agustin', 'San Isidro', 'San Juan', 'Santa Monica'],
-  'Santa Ana': ['San Agustin', 'San Bartolome', 'San Isidro', 'San Joaquin', 'San Jose', 'Santa Lucia'],
-  'Santa Rita': ['Becuran', 'Dila-Dila', 'San Agustin', 'San Basilio', 'San Isidro', 'Santa Monica'],
-  'Santo Tomas': ['Moras De La Paz', 'Poblacion', 'San Bartolome', 'San Matias', 'San Vicente', 'Santo Rosario'],
-  'Sasmuan': ['Batang 1st', 'Batang 2nd', 'Mabuanbuan', 'Malusac', 'San Antonio', 'Santa Lucia']
-},
-'Tarlac': {
-  'Tarlac City': ['Aguso', 'Armenia', 'Atioc', 'Balanti', 'Banaba', 'Batang-Batang'],
-  'Capas': ['Aranguren', 'Bueno', 'Calingcuan', 'Cubcub', 'Cutcut I', 'Cutcut II'],
-  'Anao': ['Baguindoc', 'Campos', 'Cayabas', 'Don Ramon', 'Hernando', 'San Juan'],
-  'Bamban': ['Anupul', 'Banaba', 'Dolores', 'La Paz', 'San Nicolas', 'San Pedro'],
-  'Camiling': ['Anoling', 'Bacaba', 'Bilad', 'Cabanabaan', 'Cabayaoasan', 'Lasong'],
-  'Concepcion': ['Balutu', 'Culate', 'Dela Paz', 'Lourdes', 'San Agustin', 'Tinang'],
-  'Gerona': ['Abagon', 'Amacalan', 'Bacooc', 'Calayaan', 'Dona Marcelina', 'Poblacion 1'],
-  'La Paz': ['Atlu-Bola', 'Balite', 'Caut', 'Caut Norte', 'Dumarais', 'San Isidro'],
-  'Mayantoc': ['Barangobong', 'Bigbiga', 'Carabaoan', 'Labney', 'Mamonit', 'Sula'],
-  'Moncada': ['Abagon', 'Aringin', 'Camangaan', 'Inanlorenza', 'San Julian', 'Tumana'],
-  'Paniqui': ['Abogado', 'Bani', 'Cabayaoasan', 'Coral', 'Estacion', 'Rizal'],
-  'Pura': ['Bacolor', 'Buenavista', 'Estipona', 'Linao', 'Maasin', 'Singat'],
-  'Ramos': ['Corazon De Jesus', 'Poblacion Center', 'San Juan', 'San Raymundo', 'Santa Rita', 'Toledad'],
-  'San Clemente': ['Casipo', 'Daldalayap', 'Delfino', 'Maasin', 'Nagascan', 'Poblacion Norte'],
-  'San Jose': ['Aklang San Jose', 'Iba', 'Labney', 'Lawacamulag', 'Moriones', 'San Juan De Valdez'],
-  'San Manuel': ['Colosboa', 'Lanat', 'Legaspi', 'Mababanaba', 'San Agustin', 'San Felipe'],
-  'Santa Ignacia': ['Caarosipan', 'Cabaraoan', 'Cabugbugan', 'Namagbagan', 'Padapada', 'Sosolot'],
-  'Victoria': ['Balbaloto', 'Bangar', 'Batang-Batang', 'Caturay', 'San Fernando', 'San Francisco']
-},
-'Zambales': {
-  'Iba': ['Amungan', 'Bangantalinga', 'Dirita-Baloguen', 'Lipay-Dingin-Panibuatan', 'Palanginan', 'Sampaloc'],
-  'Olongapo': ['Banicain', 'Barretto', 'East Bajac-Bajac', 'Gordon Heights', 'Kalaklan', 'New Cabalan'],
-  'Botolan': ['Bangan', 'Binuclutan', 'Burgos', 'Carael', 'Danacbunga', 'Maguisguis'],
-  'Cabangan': ['Arew', 'Banuanbayo', 'Laoag', 'Lipay', 'Mabanglit', 'San Isidro'],
-  'Candelaria': ['Babancal', 'Binabalian', 'Catol', 'Lauis', 'Malabon', 'Pinagrealan'],
-  'Castillejos': ['Balaybay', 'Looc', 'Magsaysay', 'Nagbayan', 'San Agustin', 'San Juan'],
-  'Masinloc': ['Baloganon', 'Bani', 'Inhobol', 'San Lorenzo', 'San Salvador', 'Taltal'],
-  'Palauig': ['Alwa', 'Bacungan', 'Bato', 'Garreta', 'Liozon', 'Salaza'],
-  'San Antonio': ['Antipolo', 'Bacolcol', 'Bangan', 'Burgos', 'Luna', 'San Miguel'],
-  'San Felipe': ['Aplaya', 'Amagna', 'Farañal', 'Manglicmot', 'Maloma', 'Sindol'],
-  'San Marcelino': ['Burgos', 'Consuelo Norte', 'Consuelo Sur', 'Nagbunga', 'San Rafael', 'Santa Rita'],
-  'San Narciso': ['Alusiis', 'Beddeng', 'La Paz', 'Libertad', 'Natividad', 'San Rafael'],
-  'Santa Cruz': ['Bangcol', 'Babuyan', 'Bulawon', 'Gama', 'Lipay', 'Lucapon North'],
-  }
-};
-
-  const [selectedProvince, setSelectedProvince] = useState('');
-  const [selectedMunicipality, setSelectedMunicipality] = useState('');
-  const [selectedBarangay, setSelectedBarangay] = useState('');
-
-  const handleProvinceChange = (event) => {
-    setSelectedProvince(event.target.value);
-    setSelectedMunicipality('');
-    setSelectedBarangay('');
-  };
-
-  const handleMunicipalityChange = (event) => {
-    setSelectedMunicipality(event.target.value);
-    setSelectedBarangay('');
-  };
-
-  const handleBarangayChange = (event) => {
-    setSelectedBarangay(event.target.value);
-  };
-
   useEffect(initializeStateFormData, []);
+  useEffect(initializeProvincesList, []);
+  useEffect(handleProvinceChange, [selectedProvince]);
+  useEffect(handleMunicipalityChange, [selectedMunicipality]);
 
   return (
     <Slide direction="right" in={stepValue === 0}>
@@ -664,7 +572,7 @@ function PersonalInfoForm({
           value={userInfo.dateOfBirth ?? ""}
           onChange={handleTexfieldChange}
         />
-        <FormControl fullWidth className="mb-[20px]">
+        <FormControl fullWidth required className="mb-[20px]">
           <InputLabel id="edit-profile-affiliation">Affiliation</InputLabel>
           <Select
             name="affiliation"
@@ -682,7 +590,7 @@ function PersonalInfoForm({
             <MenuItem value="WOOD_CRAFTER">Wood Crafter</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth className="mb-[20px]">
+        <FormControl fullWidth required className="mb-[20px]">
           <InputLabel id="edit-profile-gender">Gender</InputLabel>
           <Select
             labelId="edit-profile-gender"
@@ -697,16 +605,16 @@ function PersonalInfoForm({
             <MenuItem value="FEMALE">Female</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth className="mb-[20px]">
+        <FormControl fullWidth className="mb-[20px]" required>
           <InputLabel id="province-label">Province</InputLabel>
           <Select
             labelId="province-label"
             name="province"
             label="Province"
             value={selectedProvince}
-            onChange={handleProvinceChange}
+            onChange={handleAddressChange}
           >
-            {Object.keys(centralLuzonData).map((province) => (
+            {provinces.map((province) => (
               <MenuItem key={province} value={province}>
                 {province}
               </MenuItem>
@@ -714,16 +622,22 @@ function PersonalInfoForm({
           </Select>
         </FormControl>
 
-        <FormControl fullWidth className="mb-[20px]" disabled={!selectedProvince}>
+        <FormControl
+          fullWidth
+          className="mb-[20px]"
+          disabled={!selectedProvince}
+          required
+        >
           <InputLabel id="municipality-label">Municipality</InputLabel>
           <Select
             labelId="municipality-label"
             name="municipality"
             label="Municipality"
             value={selectedMunicipality}
-            onChange={handleMunicipalityChange}
+            onChange={handleAddressChange}
+            required
           >
-            {selectedProvince && Object.keys(centralLuzonData[selectedProvince]).map((municipality) => (
+            {municipalities.map((municipality) => (
               <MenuItem key={municipality} value={municipality}>
                 {municipality}
               </MenuItem>
@@ -731,16 +645,21 @@ function PersonalInfoForm({
           </Select>
         </FormControl>
 
-        <FormControl fullWidth className="mb-[20px]" disabled={!selectedMunicipality}>
+        <FormControl
+          fullWidth
+          className="mb-[20px]"
+          disabled={!selectedMunicipality}
+          required
+        >
           <InputLabel id="barangay-label">Barangay</InputLabel>
           <Select
             labelId="barangay-label"
             name="barangay"
             label="Barangay"
             value={selectedBarangay}
-            onChange={handleBarangayChange}
+            onChange={handleAddressChange}
           >
-            {selectedMunicipality && centralLuzonData[selectedProvince][selectedMunicipality].map((barangay) => (
+            {barangays.map((barangay) => (
               <MenuItem key={barangay} value={barangay}>
                 {barangay}
               </MenuItem>
@@ -758,7 +677,7 @@ function PersonalInfoForm({
       </form>
     </Slide>
   );
-};
+}
 
 function RecommendedAccounts() {
   const [accountsInfo, stetAccountsInfo] = useState<UserProfileInfo[]>([]);
