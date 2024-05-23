@@ -28,6 +28,7 @@ model User {
   updatedAt          DateTime?         @updatedAt
   account_visibility AccountVisibility @default(PUBLIC)
   interests          String[]          @default([])
+  account_status     AccountStatus     @default(ACTIVE)
 
   liked_posts_id         String[] @default([]) @db.ObjectId
   disliked_post_id       String[] @default([]) @db.ObjectId
@@ -42,21 +43,22 @@ model User {
   credential           Credential?
   posts                Post[]
   projects             Project[]
-  disliked_projets     Project[]          @relation("disliked_projects", fields: [disliked_projects_id], references: [id])
-  liked_posts          Post[]             @relation("liked_posts", fields: [liked_posts_id], references: [id])
-  disliked_posts       Post[]             @relation("disliked_posts", fields: [disliked_post_id], references: [id])
-  up_voted_comments    Comment[]          @relation("up_voted_comments", fields: [up_voted_comments_id], references: [id])
-  down_voted_comments  Comment[]          @relation("down_voted_comments", fields: [down_voted_comments_id], references: [id])
+  disliked_projets     Project[]             @relation("disliked_projects", fields: [disliked_projects_id], references: [id])
+  liked_posts          Post[]                @relation("liked_posts", fields: [liked_posts_id], references: [id])
+  disliked_posts       Post[]                @relation("disliked_posts", fields: [disliked_post_id], references: [id])
+  up_voted_comments    Comment[]             @relation("up_voted_comments", fields: [up_voted_comments_id], references: [id])
+  down_voted_comments  Comment[]             @relation("down_voted_comments", fields: [down_voted_comments_id], references: [id])
   comments             Comment[]
-  liked_projects       Project[]          @relation("liked_projects", fields: [liked_projects_id], references: [id])
-  NotificationSent     Notification[]     @relation("notifTo")
-  NotificationReceived Notification[]     @relation("notifBy")
-  followers            User[]             @relation("followers", fields: [follower_ids], references: [id])
-  following            User[]             @relation("followers", fields: [following_ids], references: [id])
-  SentMessages         Message[]          @relation("sentMessage")
-  ReicievedMessages    Message[]          @relation("recievedMessage")
-  Conversations        Converse[]         @relation("messengers", fields: [converse_id], references: [id])
-  PasswordChangeOTP    PasswordChangeOTP?
+  liked_projects       Project[]             @relation("liked_projects", fields: [liked_projects_id], references: [id])
+  NotificationSent     Notification[]        @relation("notifTo")
+  NotificationReceived Notification[]        @relation("notifBy")
+  followers            User[]                @relation("followers", fields: [follower_ids], references: [id])
+  following            User[]                @relation("followers", fields: [following_ids], references: [id])
+  SentMessages         Message[]             @relation("sentMessage")
+  ReicievedMessages    Message[]             @relation("recievedMessage")
+  Conversations        Converse[]            @relation("messengers", fields: [converse_id], references: [id])
+  PasswordChangeOTP    PasswordChangeTicket?
+  Report               Report[]
 }
 
 model Post {
@@ -78,6 +80,7 @@ model Post {
   author            User           @relation(fields: [author_id], references: [id])
   comments          Comment[]
   Notifications     Notification[]
+  Report            Report[]
 }
 
 model Project {
@@ -124,6 +127,7 @@ model Comment {
   replies             Comment[]      @relation("replies")
   replied_to          Comment?       @relation("replies", fields: [reply_to_id], references: [id], onUpdate: NoAction, onDelete: NoAction)
   Notification        Notification[]
+  Report              Report[]
 }
 
 model Credential {
@@ -133,8 +137,8 @@ model Credential {
 
   user_id String @unique @db.ObjectId
 
-  user             User               @relation(fields: [user_id], references: [id])
-  psswordChangeOTP PasswordChangeOTP?
+  user             User                  @relation(fields: [user_id], references: [id])
+  psswordChangeOTP PasswordChangeTicket?
 }
 
 model Notification {
@@ -183,15 +187,10 @@ model Message {
   Recipient    User     @relation("recievedMessage", fields: [recipient_id], references: [id])
 }
 
-model Sample {
-  test1 String @id @map("_id") @db.ObjectId
-  test2 String
-}
-
-model PasswordChangeOTP {
+model PasswordChangeTicket {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  otp      String
+  ticket String @unique
 
   user_id       String   @unique @db.ObjectId
   credential_id String   @unique @db.ObjectId
@@ -199,11 +198,6 @@ model PasswordChangeOTP {
 
   User       User       @relation(fields: [user_id], references: [id])
   Credential Credential @relation(fields: [credential_id], references: [id])
-}
-
-model Test {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  messengersId String[] @unique @default([]) @db.ObjectId
 }
 
 model RegisterOTP {
@@ -214,16 +208,86 @@ model RegisterOTP {
   updatedAt DateTime? @updatedAt
 }
 
-// * TYPES
-// type Message {
-//   id        String
-//   author_id String
-//   type      MessageType
-//   media     PostMedia[]
-//   chat      String?
-//   createdAt DateTime
-//   status    MesssageStatus
-// }
+model PH_Address {
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  province_name     String @unique
+  municipality_list Json?
+}
+
+model Articles {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  link        String
+  author      String
+  status      ArticleStatus @default(PUBLISHED)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Trainings {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  link        String
+  status      TrainingStatus @default(PUBLISHED)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Report {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  type        String
+  problem     ReportProblem
+  description String
+  status      ReportStatus  @default(IN_REVIEW)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  reportedBy_id String  @db.ObjectId
+  post_id       String? @db.ObjectId
+  comment_id    String? @db.ObjectId
+
+  ReportedBy User     @relation(fields: [reportedBy_id], references: [id])
+  Post       Post?    @relation(fields: [post_id], references: [id])
+  Comment    Comment? @relation(fields: [comment_id], references: [id])
+}
+
+enum ReportType {
+  POST
+  COMMENT
+}
+
+enum ReportProblem {
+  INAPPRIOPRIATE_CONTENT
+  FALSE_INFORMATION
+  HARASSMENT
+  VIOLENCE_OR_THREATS
+  COPYRIGHT_INFIRNGEMENT
+  PRIVACY_VIOLATION
+  SCAM
+  IMPERSONATION
+  HATESPEECH
+}
+
+enum ReportStatus {
+  RESOLVED
+  IN_REVIEW
+  UN_RESOLVED
+}
+
+enum ArticleStatus {
+  ARCHIVED
+  PUBLISHED
+}
+
+enum TrainingStatus {
+  ARCHIVED
+  PUBLISHED
+}
 
 type UnreadMessage {
   user_id String
@@ -270,6 +334,12 @@ enum MessageType {
   VIDEO
   AUDIO
   FILE
+}
+
+enum AccountStatus {
+  ACTIVE
+  BLOCKED
+  ARCHIVED
 }
 
 enum Gender {

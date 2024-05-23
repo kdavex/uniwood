@@ -83,5 +83,8 @@ export function UsersRoute(
     handler: userController.getFollowings,
   });
 
+  instance.get("/existUsername/:username", userController.verifyUsernameExist);
+  instance.get("/existEmail/:email", userController.verifyEmailExist);
+
   done();
 }

@@ -1,5 +1,5 @@
 import { MultipartFile } from "@fastify/multipart";
-import { pipeline } from "stream/promises";
+import { pipeline } from  "stream/promises";
 import { createWriteStream } from "fs";
 import { rename, unlink } from "fs/promises";
 import { randomBytes } from "crypto";
@@ -28,13 +28,12 @@ export async function storeFile(
   if (!extension) throw Error("File is empty");
 
   const filename: string = randomBytes(86).toString("base64url");
-
   try {
     await pipeline(
       multFile.file,
       createWriteStream(
         path.join(
-          import.meta.dirname,
+          __dirname,
           `../${location}/${filename}.${extension}`,
         ),
       ),
@@ -68,10 +67,10 @@ export function removeFiles(
     if (filesInfo === undefined) return;
     if (typeof filesInfo === "string")
       return unlink(
-        path.resolve(import.meta.dirname, `../${folder}/${filesInfo}`),
+        path.resolve(__dirname, `../${folder}/${filesInfo}`),
       );
     unlink(
-      path.resolve(import.meta.dirname, `../${folder}/${filesInfo.filename}`),
+      path.resolve(__dirname, `../${folder}/${filesInfo.filename}`),
     );
   });
 }
@@ -93,18 +92,18 @@ export async function moveFile(
     if (typeof fileInfo !== "string") {
       await rename(
         path.resolve(
-          import.meta.dirname,
+          __dirname,
           `../${currentFolder}/${fileInfo.filename}`,
         ),
         path.resolve(
-          import.meta.dirname,
+          __dirname,
           `../${targetFolder}/${fileInfo.filename}`,
         ),
       );
     } else {
       await rename(
-        path.resolve(import.meta.dirname, `../${currentFolder}/${fileInfo}`),
-        path.resolve(import.meta.dirname, `../${targetFolder}/${fileInfo}`),
+        path.resolve(__dirname, `../${currentFolder}/${fileInfo}`),
+        path.resolve(__dirname, `../${targetFolder}/${fileInfo}`),
       );
     }
   });

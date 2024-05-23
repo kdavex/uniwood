@@ -29,6 +29,10 @@ import {
   CommentsRoute,
   TestRoute,
   OtpRoute,
+  CredentialRoute,
+  AddressRoute,
+  ArticlesRoute,
+  TrainingsRoute,
 } from "./routes/index";
 import { onRequestHook } from "./hooks/index";
 import { messageChangeHandler } from "./mongodb/sockets/index";
@@ -36,7 +40,7 @@ import { NotificationChangeHandler } from "./mongodb/sockets/notificationHandler
 
 // import { authorizeWS } from "./middlewares/authorize";
 dotenv.config({
-  path: path.resolve(import.meta.dirname, ".env"),
+  path: path.resolve(__dirname, ".env"),
 });
 
 const app = fastify() as FastifyInstance;
@@ -84,7 +88,11 @@ app.register(ConverseRoute, { prefix: "/converse" });
 app.register(NotificationRoute, {
   prefix: "/notifications",
 });
+app.register(CredentialRoute, { prefix: "/credentials" });
 app.register(OtpRoute, { prefix: "/otp" });
+app.register(AddressRoute, { prefix: "/address" });
+app.register(ArticlesRoute, { prefix: "/articles" });
+app.register(TrainingsRoute, { prefix: "/trainings" });
 
 app.ready((err) => {
   if (err) throw err;

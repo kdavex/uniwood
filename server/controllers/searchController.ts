@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "../types/fastify.d";
 import { capitalize } from "../utils/index";
+import { asterizeProfanicWords } from "../utils/wordTool";
 
 const search = async (
   req: FastifyRequest<{ Body: any; Params: { search: string | undefined } }>,
@@ -292,8 +293,8 @@ const search = async (
   let postsData = posts.map((post) => {
     return {
       id: post.id,
-      title: post.title,
-      context: post.context,
+      title: asterizeProfanicWords(post.title),
+      context: asterizeProfanicWords(post.context),
       media: post.media,
       liked_by_users_id: post.liked_by_users_id,
       createdAt: post.createdAt,
@@ -301,7 +302,7 @@ const search = async (
       comments: post.comments.map((comment) => {
         return {
           id: comment.id, // Fix: Access the 'id' property from the 'comment' object
-          content: comment.content,
+          content: asterizeProfanicWords(comment.content),
           createdAt: comment.createdAt,
           up_voted_by_users_id: comment.up_voted_by_users_id,
           down_voted_by_users_id: comment.down_voted_by_users_id,

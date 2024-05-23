@@ -897,6 +897,8 @@ export interface UserPutBody {
   cover?: FileInfo | undefined;
 }
 
+// NOTE FOR ADMIN
+
 const userController = {
   createUser,
   updateUser,

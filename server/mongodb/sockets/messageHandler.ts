@@ -2,18 +2,23 @@ import { Server, Socket } from "socket.io";
 import { MongodbInstane } from "../dbConnect";
 import { IMessage, IMessageDocument } from "../../types";
 import { ChangeStreamDocument } from "mongodb";
-import { IReadMessagePayload } from "../../../types";
+
 import { updateUnreadMessagesCount } from "../../models";
 import { PrismaClient } from "@prisma/client";
 import { capitalize } from "../../utils";
 
-const db = await new MongodbInstane().getDbInstance();
+interface IReadMessagePayload {
+  converse_id: string;
+  user_id: string;
+}
 
 // ** Message Change Handler
 // *  Socket Events:
 // *       [messgage/converse_id] - Emit message to the respective conversation
 // *       [converseList/recipient_id & author_id] - Emit message to the respective conversation
-export const messageChangeHandler = (io: Server, socket: Socket) => {
+export const messageChangeHandler = async (io: Server, socket: Socket) => {
+  const db = await new MongodbInstane().getDbInstance();
+
   const collection = db.collection("Message");
   const changeStream = collection.watch();
 
@@ -43,7 +48,7 @@ export const messageChangeHandler = (io: Server, socket: Socket) => {
   };
 
   const updateConverseList = async (
-    change: ChangeStreamDocument<IMessageDocument>,
+    change: ChangeStreamDocument<IMessageDocument>
   ) => {
     let socketEventForAuthor: string | undefined;
     let socketEventForRecipient: string | undefined;
@@ -79,7 +84,7 @@ export const messageChangeHandler = (io: Server, socket: Socket) => {
         recipient_id: change.fullDocument.recipient_id,
         pfp: recipientInfo.user_image.pfp_name,
         fullname: capitalize(
-          `${recipientInfo.firstname} ${recipientInfo.lastname}`,
+          `${recipientInfo.firstname} ${recipientInfo.lastname}`
         ),
       };
     }
@@ -94,7 +99,7 @@ export const messageChangeHandler = (io: Server, socket: Socket) => {
 
   const readMessage = async (
     payload: Partial<IReadMessagePayload>,
-    res: (response: object) => void,
+    res: (response: object) => void
   ) => {
     try {
       if (payload.user_id !== undefined && payload.converse_id !== undefined) {

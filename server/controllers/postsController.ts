@@ -6,6 +6,7 @@ import { likePostTogggle as likePostToggleFnc } from "../models/postQuery";
 import { isValidObjectId } from "../utils/checker";
 import { capitalize } from "../utils/index";
 import { recommendPosts } from "../utils/recomAlgo";
+import { asterizeProfanicWords } from "../utils/wordTool";
 
 const createPost = async (
   req: FastifyRequest<{ Body: PostPostBody }>,
@@ -161,7 +162,20 @@ const getPosts = async (req: FastifyRequest, res: FastifyReply) => {
     console.error(error);
     return res.code(500).send({ status: "fail", message: "Internal Error" });
   }
-  console.log({ status: "success", data: posts });
+
+  posts = posts.map((post) => {
+    return {
+      ...post,
+      title: asterizeProfanicWords(post.title ?? ""),
+      context: asterizeProfanicWords(post.context ?? ""),
+      comments: post.comments.map((comment) => {
+        return {
+          ...comment,
+          content: asterizeProfanicWords(comment.content),
+        };
+      }),
+    };
+  });
   return res.code(200).send({ status: "success", data: posts });
 };
 
@@ -289,8 +303,8 @@ const getAllUserPost = async (
   let data = posts.map((post) => {
     return {
       id: post.id,
-      title: post.title,
-      context: post.context,
+      title: asterizeProfanicWords(post.title ?? ""),
+      context: asterizeProfanicWords(post.context),
       media: post.media,
       liked_by_users_id: post.liked_by_users_id,
       createdAt: post.createdAt,
@@ -298,7 +312,7 @@ const getAllUserPost = async (
       comments: post.comments.map((comment) => {
         return {
           id: comment.id, // Fix: Access the 'id' property from the 'comment' object
-          content: comment.content,
+          content: asterizeProfanicWords(comment.content),
           createdAt: comment.createdAt,
           up_voted_by_users_id: comment.up_voted_by_users_id,
           down_voted_by_users_id: comment.down_voted_by_users_id,
@@ -434,8 +448,8 @@ const getAllPosts = async (req: FastifyRequest, res: FastifyReply) => {
   let data = posts.map((post) => {
     return {
       id: post.id,
-      title: post.title,
-      context: post.context,
+      title: asterizeProfanicWords(post.title),
+      context: asterizeProfanicWords(post.context),
       media: post.media,
       liked_by_users_id: post.liked_by_users_id,
       createdAt: post.createdAt,
@@ -443,7 +457,7 @@ const getAllPosts = async (req: FastifyRequest, res: FastifyReply) => {
       comments: post.comments.map((comment) => {
         return {
           id: comment.id, // Fix: Access the 'id' property from the 'comment' object
-          content: comment.content,
+          content: asterizeProfanicWords(comment.content),
           createdAt: comment.createdAt,
           up_voted_by_users_id: comment.up_voted_by_users_id,
           down_voted_by_users_id: comment.down_voted_by_users_id,
@@ -652,8 +666,8 @@ const getPostById = async (
 
   const parsedDoc = {
     id: postDoc.id,
-    title: postDoc.title,
-    context: postDoc.context,
+    title: asterizeProfanicWords(postDoc.title),
+    context: asterizeProfanicWords(postDoc.context),
     createdAt: postDoc.createdAt,
     liked_by_users_id: postDoc.liked_by_users_id,
     media: postDoc.media,
@@ -674,6 +688,7 @@ const getPostById = async (
     comments: postDoc.comments.map((comment) => {
       return {
         ...comment,
+        content: asterizeProfanicWords(comment.content),
         author: {
           id: comment.author.id,
           fullname: capitalize(
@@ -752,8 +767,8 @@ const getRecommendedPosts = async (
   let postParsedData = allPosts.map((post) => {
     return {
       id: post.id,
-      title: post.title,
-      context: post.context,
+      title: asterizeProfanicWords(post.title),
+      context: asterizeProfanicWords(post.context),
       media: post.media,
       liked_by_users_id: post.liked_by_users_id,
       createdAt: post.createdAt,
@@ -761,7 +776,7 @@ const getRecommendedPosts = async (
       comments: post.comments.map((comment) => {
         return {
           id: comment.id, // Fix: Access the 'id' property from the 'comment' object
-          content: comment.content,
+          content: asterizeProfanicWords(comment.content),
           createdAt: comment.createdAt,
           up_voted_by_users_id: comment.up_voted_by_users_id,
           down_voted_by_users_id: comment.down_voted_by_users_id,
@@ -823,6 +838,76 @@ const getRecommendedPosts = async (
 
   return res.code(200).send({ status: "success", data: recomPost ?? [] });
 };
+
+const reportPost = async (
+  req: FastifyRequest<{ Body: PostReportPostBody }>,
+  res: FastifyReply,
+) => {
+  // Check if user is authorize
+  if (!req.userId)
+    return res
+      .code(401)
+      .send({ status: "fail", message: "User is not authorize" });
+
+  // Check if user is report his/her own post
+  const userOwned = await req.prisma.post.findUnique({
+    where: {
+      id: req.body.postId,
+      author: {
+        id: req.userId,
+      },
+    },
+  });
+  if (userOwned)
+    return res.code(403).send({
+      status: "fail",
+      error: "UserPostOwnerRestriction",
+      message: "User is not authorize",
+    });
+
+  // Check if post exist
+  const postExist = await req.prisma.post.findUnique({
+    where: {
+      id: req.body.postId,
+    },
+  });
+  if (!postExist)
+    return res.code(404).send({ status: "fail", message: "Post not found" });
+
+  // Create report
+  try {
+    await req.prisma.report.create({
+      data: {
+        description: req.body.description,
+        type: "POST",
+        problem: req.body.problem,
+        post_id: req.body.postId,
+        reportedBy_id: req.userId,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.code(500).send({ status: "fail", message: "Internal Error" });
+  }
+};
+
+export type PostReportPostBody = {
+  postId: string;
+  description: string;
+  problem: ReportProblem;
+};
+
+type ReportProblem =
+  | "INAPPRIOPRIATE_CONTENT"
+  | "FALSE_INFORMATION"
+  | "HARASSMENT"
+  | "VIOLENCE_OR_THREATS"
+  | "COPYRIGHT_INFIRNGEMENT"
+  | "PRIVACY_VIOLATION"
+  | "SCAM"
+  | "IMPERSONATION"
+  | "HATESPEECH";
+
 export type PostPostBody = {
   title?: string;
   context: string;

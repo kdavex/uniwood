@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "../types/fastify.d";
 import { removeFiles, storeFile } from "../utils/fileManager";
 import { PostPostBody, PostPutBody } from "../controllers/postsController";
+import { addTextWaterMark } from "../utils/imageUtil";
 
 // *This Multipart consumer is for posts with meedia that contains each caption in the image
 
@@ -29,7 +30,6 @@ export async function postsCustomMultipartConsumer(
   try {
     for await (const part of parts) {
       if (part.type === "field") {
-        console.log({ field: true, fields: part.fieldname });
         if (part.fieldname.includes("caption-")) {
           const hash = part.fieldname.split("-")[1] as string;
           if (media[hash] === undefined)
@@ -44,7 +44,6 @@ export async function postsCustomMultipartConsumer(
         } else body[part.fieldname] = part.value;
       }
       if (part.type === "file") {
-        console.log(`file Entered: ${part.fieldname}`);
         if (part.file.truncated)
           return res.status(413).send({ message: "File too large" });
         if (
@@ -55,7 +54,7 @@ export async function postsCustomMultipartConsumer(
           if (media[hash] === undefined)
             media[hash] = {
               caption: null,
-              filename: (await storeFile(part, "tmp")).filename,
+              filename: await addTextWaterMark("brynrgnzls", part),
             };
           else media[hash].filename = (await storeFile(part, "tmp")).filename;
         }

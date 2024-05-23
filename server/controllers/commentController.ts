@@ -8,6 +8,7 @@ import {
   testCommentQuery,
 } from "../models/commentsQuery.js";
 import { ObjectId } from "mongodb";
+import { asterizeProfanicWords } from "../utils/wordTool.js";
 
 const createComment = async (
   req: FastifyRequest<{ Body: { comment: string; postId: string } }>,
@@ -207,6 +208,13 @@ const getComments = async (
       include: { replies: true },
     });
 
+  comments = comments.map((comment) => {
+    return {
+      ...comment,
+      content: asterizeProfanicWords(comment.content),
+    };
+  });
+
   return reply.code(200).send({ status: "success", comments });
 };
 
@@ -214,9 +222,16 @@ const getComment = async (
   req: FastifyRequest<{ Params: { commentId: string }; Body: any }>,
   reply: FastifyReply,
 ) => {
-  const comment = await req.prisma.comment.findUnique({
+  let comment = await req.prisma.comment.findUnique({
     where: { id: req.params.commentId },
   });
+
+  if (!comment)
+    return reply
+      .code(404)
+      .send({ status: "fail", message: "Comment not found" });
+
+  comment = { ...comment, content: asterizeProfanicWords(comment.content) };
 
   return reply.code(200).send({ status: "success", comment });
 };
@@ -328,6 +343,55 @@ const replyComment = async (
   return res.code(200).send({ status: "success", message: "Comment Replied" });
 };
 
+const reportComment = async (
+  req: FastifyRequest<{
+    Body: {
+      commentId: string;
+      problem: ReportProblem;
+      description: string;
+    };
+  }>,
+  res: FastifyReply,
+) => {
+  // Check if user is authorize
+  if (!req.userId)
+    return res.code(401).send({
+      status: "fail",
+      message: "User is unauthorize",
+    });
+
+  // Check if comment exist
+  const comment = await req.prisma.comment.findUnique({
+    where: { id: req.body.commentId },
+  });
+  if (!comment)
+    return res.code(404).send({
+      status: "fail",
+      message: "Comment not found",
+    });
+
+  // check if user is the owner of the comment
+  if (comment.author_id === req.userId) {
+    return res.code(403).send({
+      status: "fail",
+      message: "User is not authorize to report the comment",
+    });
+  }
+
+  // check if uer
+
+  // Create report
+  await req.prisma.report.create({
+    data: {
+      comment_id: req.body.commentId,
+      problem: req.body.problem,
+      type: "COMMENT",
+      description: req.body.description,
+      reportedBy_id: req.userId,
+    },
+  });
+};
+
 const commentController = {
   createComment,
   updateComment,
@@ -342,14 +406,13 @@ const commentController = {
 export default commentController;
 
 // ! Test
-export const test = async (
-  req: FastifyRequest<{ Body: { commentId: string } }>,
-  res: FastifyReply,
-) => {
-  if (req.userId)
-    await testCommentQuery(
-      { userId: req.userId, commentId: req.body.commentId },
-      req.prisma,
-    );
-  res.send({ status: "success" });
-};
+type ReportProblem =
+  | "INAPPRIOPRIATE_CONTENT"
+  | "FALSE_INFORMATION"
+  | "HARASSMENT"
+  | "VIOLENCE_OR_THREATS"
+  | "COPYRIGHT_INFIRNGEMENT"
+  | "PRIVACY_VIOLATION"
+  | "SCAM"
+  | "IMPERSONATION"
+  | "HATESPEECH";

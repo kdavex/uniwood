@@ -10,3 +10,7 @@ export * from "./search";
 export * from "./testRoute";
 export * from "./converse";
 export * from "./otp";
+export * from "./credential";
+export * from "./address";
+export * from "./articles";
+export * from "./trainings";

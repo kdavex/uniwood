@@ -4,19 +4,19 @@ import { INotificationDocument } from "../../types";
 import { ChangeStreamDocument, ObjectId } from "mongodb";
 import { capitalize } from "../../utils";
 
-const db = await new MongodbInstane().getDbInstance();
-
 // **
 // * Notification Change Handler
 // *  Socket Events:
 // *       [notification/user_id] - Emit notification to the respective user
 
-export const NotificationChangeHandler = (io: Server, socket: Socket) => {
+export const NotificationChangeHandler = async (io: Server, socket: Socket) => {
+  const db = await new MongodbInstane().getDbInstance();
+
   const collection = db.collection("Notification");
   const changeStream = collection.watch();
 
   const sendNotification = async (
-    change: ChangeStreamDocument<INotificationDocument>,
+    change: ChangeStreamDocument<INotificationDocument>
   ) => {
     let socketEvent: string | null = null;
     let payload: Omit<
@@ -36,7 +36,7 @@ export const NotificationChangeHandler = (io: Server, socket: Socket) => {
             username: 1,
             "user_image.pfp_name": 1,
           },
-        },
+        }
       );
       if (!notifBy) throw new Error("User not found");
 

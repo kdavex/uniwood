@@ -19,7 +19,10 @@ export async function sendRegistrationOTP(
   let mailOptions: Mail.Options = {
     to: to,
     subject: "Account Verification Code",
-    html: await ejs.renderFile(`${path.resolve(import.meta.dirname, "../views/otp.ejs")}`, { otp }),
+    html: await ejs.renderFile(
+      `${path.resolve(__dirname, "../views/registerOTPMail.ejs")}`,
+      { otp },
+    ),
     from: `"Uniwood NO-REPLY" <${process.env.MAIL_USERNAME}> `,
   };
 
@@ -29,7 +32,35 @@ export async function sendRegistrationOTP(
   } catch (error) {
     try {
       let mailInfo = await transporter.sendMail(mailOptions);
-      return [mailInfo, null];
+      return mailInfo;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+
+export async function sendPasswordChangeTicketLink(
+  { to }: { to: string },
+  { ticket }: { ticket: string },
+) {
+  let mailOptions: Mail.Options = {
+    to: to,
+    subject: "Password Reset Ticket",
+    html: await ejs.renderFile(
+      `${path.resolve(__dirname, "../views/changePasswordMail.ejs")}`,
+      {
+        ticketLink: `https://${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}/resetPassword/${ticket}`,
+      },
+    ),
+  };
+
+  try {
+    let mailInfo = await transporter.sendMail(mailOptions);
+    return mailInfo;
+  } catch (error) {
+    try {
+      let mailInfo = await transporter.sendMail(mailOptions);
+      return mailInfo;
     } catch (error) {
       throw error;
     }

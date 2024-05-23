@@ -1,7 +1,7 @@
 import { Db, MongoClient } from "mongodb";
 import path from "node:path";
 import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(import.meta.dirname, "../../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 export class MongodbInstane {
   private static client = new MongoClient(process.env.DATABASE_URL!);
