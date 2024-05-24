@@ -20,7 +20,7 @@ import {
   Modal,
   TextField,
   IconButton,
-  Tooltip,
+  Tooltip, FormControl, InputLabel, Select,
 } from "@mui/material";
 import React, {
   Dispatch,
@@ -33,6 +33,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import ReportIcon from '@mui/icons-material/Report';
 
 import { dateWhenFormat } from "../utils/dateTools";
 import { UserInfoContext } from "../providers/UserInfoProvider";
@@ -75,6 +76,29 @@ export default function Post({ postParam }: { postParam: Post }) {
     initializeContextData();
   }, [postParam]);
 
+//this start for report??
+const [open, setOpen] = useState(false);
+const [reportReason, setReportReason] = useState('');
+const [reportDescription, setReportDescription] = useState('');
+
+const handleOpen = () => setOpen(true);
+const handleClose = () => setOpen(false);
+
+const handleReportClick = () => {
+  // Handle the report submission
+  console.log('Report Reason:', reportReason);
+  console.log('Report Description:', reportDescription);
+  handleClose();
+};
+
+const reasons = [
+  'Spam',
+  'Harassment',
+  'False Information',
+  'Inappropriate Content',
+  'Other'
+];
+
   return loading ? (
     <></>
   ) : (
@@ -113,9 +137,59 @@ export default function Post({ postParam }: { postParam: Post }) {
           )}
         </div>
         <div className="line line__1"></div>
-        <Typography className="my-2 font-bold" variant="h5">
+      <Box display="flex" justifyContent="space-between" alignItems="center" className="my-2 bg-red">
+        <Typography variant="h5" className="font-bold">
           {post.title}
         </Typography>
+        <IconButton onClick={handleOpen}>
+          <ReportIcon />
+        </IconButton>
+      </Box>
+      <Modal open={open} onClose={handleClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" mb={2}>Report Post</Typography>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="report-reason-label">Reason</InputLabel>
+            <Select
+              labelId="report-reason-label"
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              label="Reason"
+            >
+              {reasons.map((reason) => (
+                <MenuItem key={reason} value={reason}>
+                  {reason}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Description"
+            multiline
+            rows={4}
+            fullWidth
+            margin="normal"
+            value={reportDescription}
+            onChange={(e) => setReportDescription(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleReportClick}>
+            Report
+          </Button>
+        </Box>
+      </Modal>
+        
         {post.context.length < 200 ? (
           <>
             <Typography variant="body1">{post.context}</Typography>
@@ -517,6 +591,8 @@ function Tags({ tags }: { tags: string[] }) {
   );
 }
 
+
+
 function Comment({
   comment,
   highlight,
@@ -524,6 +600,27 @@ function Comment({
   comment: CommentProps;
   highlight: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const handleReportClick = () => {
+    // Handle the report submission
+    console.log('Report Reason:', reportReason);
+    console.log('Report Description:', reportDescription);
+    handleClose();
+  };
+
+  const reasons = [
+    'Spam',
+    'Harassment',
+    'False Information',
+    'Inappropriate Content',
+    'Other'
+  ];
   return (
     <div className="mb-12 flex gap-4">
       <Avatar
@@ -540,7 +637,65 @@ function Comment({
         <Typography className="absolute top-full">
           {dateWhenFormat(new Date(comment.createdAt))}
         </Typography>
+        
       </div>
+      <Box display="flex" justifyContent="flex-end" alignItems="center">
+         
+          <IconButton onClick={handleOpen}>
+            <ReportIcon />
+          </IconButton>
+        </Box>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="report-modal-title"
+        aria-describedby="report-modal-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography id="report-modal-title" variant="h6" mb={2}>
+            Report Comment
+          </Typography>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="report-reason-label">Reason</InputLabel>
+            <Select
+              labelId="report-reason-label"
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              label="Reason"
+            >
+              {reasons.map((reason) => (
+                <MenuItem key={reason} value={reason}>
+                  {reason}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Description"
+            multiline
+            rows={4}
+            fullWidth
+            margin="normal"
+            value={reportDescription}
+            onChange={(e) => setReportDescription(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleReportClick}>
+            Report
+          </Button>
+        </Box>
+      </Modal>
     </div>
   );
 }
