@@ -35,6 +35,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { UserInfoContext } from "../providers/UserInfoProvider";
 import { PosterModal } from "./Poster";
 import Cookies from "js-cookie";
+import adminPic from "../assets/default-admin-pfp.png";
 
 export default function NavAdmin() {
   const [focusState, setFocusState] = useState({
@@ -50,15 +51,15 @@ export default function NavAdmin() {
   const location = useLocation();
 
   const handleUrlParamsChange = () => {
-    if (location.pathname.startsWith("/AdminRoot/AdminUser")) {
+    if (location.pathname.startsWith("/console/AdminUser")) {
       handleFocus("AdminUser");
-    } else if (location.pathname.startsWith("/AdminRoot/AdminPost")) {
+    } else if (location.pathname.startsWith("/console/AdminPost")) {
       handleFocus("AdminPost");
-    } else if (location.pathname.startsWith("/AdminRoot/AdminComment")) {
+    } else if (location.pathname.startsWith("/console/AdminComment")) {
       handleFocus("AdminComment");
-    // } else if (location.pathname === "/") {
-    //   handleFocus("home");
-    } else if (location.pathname.startsWith("/AdminRoot/AdminUnivault")) {
+      // } else if (location.pathname === "/") {
+      //   handleFocus("home");
+    } else if (location.pathname.startsWith("/console/AdminUnivault")) {
       handleFocus("AdminUnivault");
     } else {
       setFocusState({
@@ -88,21 +89,20 @@ export default function NavAdmin() {
   const openPosterModal = () => setPosterModalView(true);
 
   return (
-    <nav className=" border-r-2 sticky top-0  h-screen w-full flex-col custom2:flex hidden px-5 ">
+    <nav className=" sticky top-0 hidden  h-screen w-full flex-col border-r-2 px-5 custom2:flex ">
       <img
-        className="absolute -top-3 left-1/2 mx-auto aspect-square w-[225px] -translate-x-1/2 "  
+        className="absolute -top-3 left-1/2 mx-auto aspect-square w-[225px] -translate-x-1/2 "
         src={`${process.env.SERVER_PUBLIC}/assets/logo_label.svg`}
         alt="logo"
       />
       <div className="pt-20"></div>
-      <p className="text-2xl text-center font-bold pt-32">Admin Dashboard</p>
+      <p className="pt-32 text-center text-2xl font-bold">Admin Dashboard</p>
       <Links focusState={focusState} />
       <AvatarNav />
       <PosterModal
         postModalView={posterModalView}
         setPostModalView={setPosterModalView}
       />
-      
     </nav>
   );
 }
@@ -126,7 +126,7 @@ function AvatarNav() {
     >
       <Avatar
         className="avatar"
-        src={`${process.env.SERVER_PUBLIC}/${userInfo.pfp}`}
+        src={`${process.env.SERVER_PUBLIC}/assets/default-admin-pfp.png`}
         sx={{
           display: "inline-block",
           marginRight: "10px",
@@ -134,17 +134,7 @@ function AvatarNav() {
         }}
       />
       <div className="avatar-details">
-        <p className="font-body text-base text-slate-800">
-          {userInfo.fullname}
-        </p>
-        <Typography
-          fontSize="14px"
-          color={theme.palette.text.secondary}
-          className="username"
-          variant="body2"
-        >
-          @{userInfo.username}
-        </Typography>
+        <p className="font-body text-base text-slate-800">Admin</p>
       </div>
       {open ? (
         <div
@@ -168,15 +158,15 @@ function Links({ focusState }: { focusState: FocustStateProps }) {
   const navigate = useNavigate();
   const [showReportDetails, setShowReportDetails] = useState(false);
 
-  const goToAdminHome = () => navigate("/AdminRoot");
-  const goToAdminUser = () => navigate("/AdminRoot/AdminUser");
+  const goToAdminHome = () => navigate("/console");
+  const goToAdminUser = () => navigate("/console/AdminUser");
   // const goToNotifications = () => navigate("/notification");
   // const goToProfile = () => navigate(`/profile/${userInfo.username}`);
   // const goToUniVault = () => navigate("/univault");
-  const goToAdminUnivault = () => navigate("/AdminRoot/AdminUnivault");
-  const goToAdminPost = () => navigate("/AdminRoot/AdminPost");
-  const goToAdminComment = () => navigate("/AdminRoot/AdminComment");
-  
+  const goToAdminUnivault = () => navigate("/console/AdminUnivault");
+  const goToAdminPost = () => navigate("/console/AdminPost");
+  const goToAdminComment = () => navigate("/console/AdminComment");
+
   const toggleReportDetails = () => {
     setShowReportDetails(!showReportDetails);
   };
@@ -204,7 +194,11 @@ function Links({ focusState }: { focusState: FocustStateProps }) {
         selected={focusState.AdminUser ? true : false}
       >
         <ListItemIcon className="text-slate-800">
-          {focusState.AdminUser ? <AccountCircleRounded /> : <AccountCircleOutlined />}
+          {focusState.AdminUser ? (
+            <AccountCircleRounded />
+          ) : (
+            <AccountCircleOutlined />
+          )}
         </ListItemIcon>
         <p
           className={`${focusState.AdminUser ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
@@ -219,7 +213,11 @@ function Links({ focusState }: { focusState: FocustStateProps }) {
         selected={focusState.AdminUnivault ? true : false}
       >
         <ListItemIcon className="text-slate-800">
-          {focusState.AdminUnivault ? <DescriptionRounded /> : <DescriptionOutlined />}
+          {focusState.AdminUnivault ? (
+            <DescriptionRounded />
+          ) : (
+            <DescriptionOutlined />
+          )}
         </ListItemIcon>
         <p
           className={`${focusState.AdminUnivault ? "font-bold" : "font-normal"} font-body text-lg text-slate-800`}
@@ -236,24 +234,18 @@ function Links({ focusState }: { focusState: FocustStateProps }) {
         <ListItemIcon className="text-slate-800">
           {showReportDetails ? <ReportOutlined /> : <ReportRounded />}
         </ListItemIcon>
-        <p className="font-normal font-body text-lg text-slate-800">
-          Report
-        </p>
+        <p className="font-body text-lg font-normal text-slate-800">Report</p>
       </MenuItem>
 
       {showReportDetails && (
-        <div style={{ marginLeft: '1rem' }}>
+        <div style={{ marginLeft: "1rem" }}>
           <MenuItem
             className="flex w-fit items-center rounded-full px-9 py-4"
             onClick={goToAdminPost}
             selected={focusState.AdminPost ? true : false}
           >
             <ListItemIcon className="text-slate-800">
-              {focusState.AdminPost ? (
-                <PostAddRounded />
-              ) : (
-                <PostAddOutlined />
-              )}
+              {focusState.AdminPost ? <PostAddRounded /> : <PostAddOutlined />}
             </ListItemIcon>
             <p
               className={`${focusState.AdminPost ? "font-bold" : "font-normal"} font-body text-base text-slate-800`}
@@ -267,7 +259,11 @@ function Links({ focusState }: { focusState: FocustStateProps }) {
             selected={focusState.AdminComments ? true : false}
           >
             <ListItemIcon className="text-slate-800">
-              {focusState.AdminComments ? <CommentRounded /> : <CommentOutlined />}
+              {focusState.AdminComments ? (
+                <CommentRounded />
+              ) : (
+                <CommentOutlined />
+              )}
             </ListItemIcon>
             <p
               className={`${focusState.AdminComments ? "font-bold" : "font-normal"} font-body text-base text-slate-800`}

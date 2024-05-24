@@ -37,8 +37,9 @@ import ResetPassoword from "./routes/ResetPassword.tsx";
 import AdminRoot from "./routes/AdminRoot.tsx";
 import AdminUser from "./routes/AdminUser.tsx";
 import AdminUnivault from "./routes/AdminUnivault.tsx";
-import AdminPost from "./routes/AdminPost.tsx";
+import AdminPost from "./routes/AdminPOST.tsx";
 import AdminComment from "./routes/AdminComment.tsx";
+import AdminPostView from "./routes/AdminPostView.tsx";
 
 const router = createBrowserRouter([
   {
@@ -46,7 +47,7 @@ const router = createBrowserRouter([
     element: <Test />,
   },
   {
-    path: "/AdminRoot",
+    path: "/console",
     element: <AdminRoot />,
     children: [
       {
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
       {
         path: "AdminComment",
         element: <AdminComment />,
+      },
+      {
+        path: "post/:postId",
+        element: <AdminPostView />,
       },
     ],
   },

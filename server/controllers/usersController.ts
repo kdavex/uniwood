@@ -375,6 +375,8 @@ const getUser = async (
       email: user.email,
       followersCount: user.followers.length,
       followingCount: user.following.length,
+      totalPostsReported: user.totalPostsReported,
+      totalCommentsReported: user.totalCommentsReported,
     },
   });
 };
@@ -858,6 +860,36 @@ const verifyUsernameExist = async (
   return res.send({ status: "success", message: "Username is available" });
 };
 
+const blockUser = async (
+  req: FastifyRequest<{ Params: { userId: string }; Body: any }>,
+  res: FastifyReply,
+) => {
+  // block user
+  await req.prisma.user.update({
+    where: { id: req.params.userId },
+    data: {
+      account_status: "BLOCKED",
+    },
+  });
+
+  return res.send({ status: "success", message: "User blocked" });
+};
+
+const unBlockUser = async (
+  req: FastifyRequest<{ Body: any; Params: { userId: string } }>,
+  res: FastifyReply,
+) => {
+  // unblock user
+  await req.prisma.user.update({
+    where: { id: req.params.userId },
+    data: {
+      account_status: "ACTIVE",
+    },
+  });
+
+  return res.send({ status: "success", message: "User unblocked" });
+};
+
 export interface UserPostBody {
   username: string;
   email: string;
@@ -917,6 +949,8 @@ const userController = {
   getFollowers,
   verifyEmailExist,
   verifyUsernameExist,
+  blockUser,
+  unBlockUser,
 };
 
 export default userController;

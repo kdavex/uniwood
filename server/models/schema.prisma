@@ -9,26 +9,28 @@ datasource db {
 
 // TODO figure out how to add a 1:many self relation in field friends
 model User {
-  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
-  username           String            @unique
-  email              String            @unique
-  firstname          String
-  lastname           String
-  middlename         String
-  bio                String?
-  date_of_Birth      DateTime
-  gender             Gender
-  address            Address
-  role               Role              @default(USER)
-  proffeciency       Proffeciency      @default(NEWBIE)
-  affiliation        Affiliation       @default(WOOD_ENTHUSIAST)
-  user_image         UserImage
-  user_status        UserStatus        @default(ACTIVE)
-  date_joined        DateTime          @default(now())
-  updatedAt          DateTime?         @updatedAt
-  account_visibility AccountVisibility @default(PUBLIC)
-  interests          String[]          @default([])
-  account_status     AccountStatus     @default(ACTIVE)
+  id                     String            @id @default(auto()) @map("_id") @db.ObjectId
+  username               String            @unique
+  email                  String            @unique
+  firstname              String
+  lastname               String
+  middlename             String
+  bio                    String?
+  date_of_Birth          DateTime
+  gender                 Gender
+  address                Address
+  role                   Role              @default(USER)
+  proffeciency           Proffeciency      @default(NEWBIE)
+  affiliation            Affiliation       @default(WOOD_ENTHUSIAST)
+  user_image             UserImage
+  user_status            UserStatus        @default(ACTIVE)
+  date_joined            DateTime          @default(now())
+  updatedAt              DateTime?         @updatedAt
+  account_visibility     AccountVisibility @default(PUBLIC)
+  interests              String[]          @default([])
+  account_status         AccountStatus     @default(ACTIVE)
+  totalPostsReported     Int               @default(0)
+  totalCommentsRerported Int               @default(0)
 
   liked_posts_id         String[] @default([]) @db.ObjectId
   disliked_post_id       String[] @default([]) @db.ObjectId
@@ -276,7 +278,7 @@ enum ReportProblem {
 enum ReportStatus {
   RESOLVED
   IN_REVIEW
-  UN_RESOLVED
+  UNRESOLVED
 }
 
 enum ArticleStatus {

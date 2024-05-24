@@ -54,7 +54,7 @@ export async function postsCustomMultipartConsumer(
           if (media[hash] === undefined)
             media[hash] = {
               caption: null,
-              filename: await addTextWaterMark("brynrgnzls", part),
+              filename: await addTextWaterMark(body.username, part),
             };
           else media[hash].filename = (await storeFile(part, "tmp")).filename;
         }

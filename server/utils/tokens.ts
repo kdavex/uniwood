@@ -4,7 +4,10 @@ import dotenv from "dotenv";
 import type { FastifyReply } from "../types/fastify.d";
 import { accessTokenOption, refreshTokenOptions } from "../config/jwtOption";
 import "@fastify/cookie";
-import type { AccessTokenPayload, RefreshTokenPayload } from "../types/global.d";
+import type {
+  AccessTokenPayload,
+  RefreshTokenPayload,
+} from "../types/global.d";
 
 dotenv.config({
   path: path.resolve(__dirname, "../../.env"),
@@ -44,11 +47,17 @@ export const sendRefreshToken = (token: string, res: FastifyReply) => {
 export const sendAccessToken = (
   userInfo: {
     id: string;
+    role: string;
+    accountStatus: string;
   },
   token: string,
   res: FastifyReply,
 ) => {
-  return res.send({ status: "success", accessToken: token, ...userInfo });
+  return res.send({
+    status: "success",
+    accessToken: token,
+    ...userInfo,
+  });
 };
 
 export const verifyAccessToken = (token: string) => {

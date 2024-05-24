@@ -288,11 +288,18 @@ function LoginForm({
   //utilitiees
   const handleLoginRequestData = () => {
     if (actionData?.status === "success") {
+      if (actionData?.accountStatus === "BLOCKED") {
+        return alert(
+          "Your account is blocked due to mulple violations please contact the administrator uniwoodtechsupp@gmail.com",
+        );
+      }
       setAccessToken(actionData?.data?.token);
       localStorage.setItem("accessToken", actionData?.accessToken);
       localStorage.setItem("id", actionData?.id);
+      localStorage.setItem("role", actionData?.role);
 
-      navigate("/");
+      if (localStorage.getItem("role") === "USER") navigate("/");
+      else navigate("/console");
     } else if (actionData?.status === "fail") {
       if (actionData.error === "FieldError") {
         (actionData.error as [{ field: string; message: string }]).forEach(
@@ -326,7 +333,15 @@ function LoginForm({
     setInputError({ ...inputError, [e.currentTarget.name]: "" });
   };
 
+  const checkIfLoggedIn = () => {
+    if (!localStorage.getItem("accessToken")) return;
+
+    if (localStorage.getItem("role") === "USER") navigate("/");
+    else navigate("/console");
+  };
+
   useEffect(handleLoginRequestData, [actionData]);
+  useEffect(checkIfLoggedIn, []);
 
   return (
     <Form action="/login" method="POST" className="pane2">

@@ -34,14 +34,14 @@ export default function Poster({
   const { userInfo } = useContext(UserInfoContext)!;
 
   return (
-    <Paper elevation={1} className="poster md:w-full sm:w-11/12">
+    <Paper elevation={1} className="poster sm:w-11/12 md:w-full">
       <div className="pane1">
         <Avatar
-          className="avatar md:size-12 sm:size-24"
+          className="avatar sm:size-24 md:size-12"
           src={`${process.env.SERVER_PUBLIC}/${userInfo.pfp}`}
         />
         <Typography
-          className="context md:text-lg sm:text-3xl p-5"
+          className="context p-5 sm:text-3xl md:text-lg"
           color={theme.palette.text.secondary}
           sx={{
             ":hover": {
@@ -57,14 +57,13 @@ export default function Poster({
         </Typography>
       </div>
       <div className="flex justify-center">
-      <button
-        className="md:m-2 mt-5 md:w-full sm:w-2/6 rounded-full bg-primary-400 md:py-2 sm:p-4 sm:text-3xl md:text-lg normal-case font-semibold text-white hover:shadow-md"
-        onClick={() => setPostModalView(true)}
-      >
-        Post
-      </button>
+        <button
+          className="mt-5 rounded-full bg-primary-400 font-semibold normal-case text-white hover:shadow-md sm:w-2/6 sm:p-4 sm:text-3xl md:m-2 md:w-full md:py-2 md:text-lg"
+          onClick={() => setPostModalView(true)}
+        >
+          Post
+        </button>
       </div>
-      
     </Paper>
   );
 }
@@ -82,10 +81,12 @@ export function PosterModal({
   const postFetcher = useFetcher();
   const { setAlert } = useContext(AlertContext);
   const rootFetcher = useFetcher();
+  const { userInfo } = useContext(UserInfoContext)!;
 
   const handlePostSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (mediaData !== null) {
+      postFormData.current.append("username", userInfo.username);
       mediaData.forEach((image, index) => {
         const imgFile = imageFileData.current?.find(
           (imageFile) => imageFile.id === image.id,
@@ -127,7 +128,7 @@ export function PosterModal({
         onClose={() => setPostModalView(!postModalView)}
       >
         <postFetcher.Form
-          className="absolute left-1/2 top-1/2 flex  max-h-[85%] w-[525px] -translate-x-1/2 -translate-y-1/2 flex-col md:min-h-[450px] md:min-w-[500px] sm:min-h-[940px] sm:min-w-[1000px] overflow-hidden rounded-lg bg-white  shadow-lg"
+          className="absolute left-1/2 top-1/2 flex  max-h-[85%] w-[525px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg bg-white shadow-lg sm:min-h-[940px] sm:min-w-[1000px] md:min-h-[450px]  md:min-w-[500px]"
           method="POST"
           action="/posts"
           onSubmit={handlePostSubmit}
@@ -146,7 +147,7 @@ export function PosterModal({
 
           <div className="sticky bottom-0 w-full border-t-2 border-solid border-secondary-100 bg-white px-5 py-2 backdrop-blur-sm">
             <Button
-              className="ml-auto block rounded-md bg-secondary-300 px-5 py-2 font-semibold normal-case text-white hover:bg-secondary-400 active:bg-secondary-500 md:w-20 sm:w-52 md:h-10 sm:h-16 md:text-base sm:text-3xl"
+              className="ml-auto block rounded-md bg-secondary-300 px-5 py-2 font-semibold normal-case text-white hover:bg-secondary-400 active:bg-secondary-500 sm:h-16 sm:w-52 sm:text-3xl md:h-10 md:w-20 md:text-base"
               type="submit"
             >
               Post
@@ -218,13 +219,13 @@ function ImageInputSet({
       />
       <label
         htmlFor="post-image-input"
-        className="group flex md:size-[100px] sm:size-[150px] items-center justify-center rounded-lg bg-secondary-200 hover:cursor-pointer hover:bg-secondary-300"
+        className="group flex items-center justify-center rounded-lg bg-secondary-200 hover:cursor-pointer hover:bg-secondary-300 sm:size-[150px] md:size-[100px]"
       >
         <Tooltip
           title="Attach Image"
           className="text-gray-700 group-hover:text-gray-100"
         >
-          <AddPhotoAlternateRounded className="md:size-10 sm:size-16"/>
+          <AddPhotoAlternateRounded className="sm:size-16 md:size-10" />
         </Tooltip>
       </label>
       <ImagePostSet mediaData={mediaData} setMediaData={setMediaData} />
@@ -288,7 +289,7 @@ function ImagePostSet({
     if (media.type.match(/image/)) {
       return (
         <div className="relative" key={index}>
-          <img src={media.src} className="md:h-[95px] sm:h-36 rounded-lg" />
+          <img src={media.src} className="rounded-lg sm:h-36 md:h-[95px]" />
           <IconButton
             title="Remove Image"
             className="absolute -right-3 -top-3 size-8 border-2 border-solid border-gray-400 bg-gray-100 hover:bg-gray-200"
@@ -331,10 +332,10 @@ function UserInfo() {
   return (
     <div className=" flex items-center gap-2 rounded-sm border-b-4 border-solid border-b-secondary-400 px-5 pb-3 font-semibold text-slate-800">
       <Avatar
-        className="-z-10 md:size-10 sm:size-24"
+        className="-z-10 sm:size-24 md:size-10"
         src={`${process.env.SERVER_PUBLIC}/${userInfo.pfp}`}
       />
-      <p className="md:text-base sm:text-4xl">{userInfo.fullname}</p>
+      <p className="sm:text-4xl md:text-base">{userInfo.fullname}</p>
     </div>
   );
 }
@@ -344,9 +345,11 @@ function ModalHeader({ setModalView }: ModalHeaderProps) {
 
   return (
     <div className="sticky top-0 mb-3 flex w-full items-center justify-center border-b-2 border-solid border-secondary-100 bg-white px-5 py-3 text-slate-800">
-      <p className="z-50 md:text-xl md:p-0 sm:p-5 sm:text-5xl font-extrabold">Create Post</p>
+      <p className="z-50 font-extrabold sm:p-5 sm:text-5xl md:p-0 md:text-xl">
+        Create Post
+      </p>
       <IconButton className="absolute right-3" onClick={closeModal}>
-        <CloseRounded className="md:size-8 sm:size-24"/>
+        <CloseRounded className="sm:size-24 md:size-8" />
       </IconButton>
     </div>
   );
@@ -402,19 +405,19 @@ function InputTag({
 
   return (
     <div
-      className={`${focusFormStyle} ${inputFocused || "hover:border-secondary-300"} flex min-h-[55.2px] w-full flex-wrap justify-center items-center rounded-lg border-2 border-solid bg-slate-100 p-2 hover:cursor-text`}
+      className={`${focusFormStyle} ${inputFocused || "hover:border-secondary-300"} flex min-h-[55.2px] w-full flex-wrap items-center justify-center rounded-lg border-2 border-solid bg-slate-100 p-2 hover:cursor-text`}
       onClick={focusInput}
     >
       {tags.map((tag) => (
         <Chip
           key={tag}
-          className="max-w flex-gow mb-1 ml-1 min-w-[10px] border-2 border-solid border-secondary-300  bg-secondary-200  font-body text-slate-800 hover:cursor-default focus-visible:border-none md:text-base sm:text-4xl"
+          className="max-w flex-gow mb-1 ml-1 min-w-[10px] border-2 border-solid border-secondary-300  bg-secondary-200  font-body text-slate-800 hover:cursor-default focus-visible:border-none sm:text-4xl md:text-base"
           label={tag}
           onDelete={removeChip(tag)}
         />
       ))}
       <input
-        className="ml-1 mr-auto bg-transparent font-mono  focus-visible:outline-none md:text-base sm:text-3xl md:p-0 sm:p-3"
+        className="ml-1 mr-auto bg-transparent font-mono  focus-visible:outline-none sm:p-3 sm:text-3xl md:p-0 md:text-base"
         type="text"
         placeholder={tags.length === 0 ? "tags" : ""}
         ref={ref}

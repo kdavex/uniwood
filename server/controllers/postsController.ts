@@ -203,6 +203,9 @@ const getAllUserPost = async (
       liked_by_users_id: true,
 
       comments: {
+        where: {
+          status: "ACTIVE",
+        },
         select: {
           id: true,
           content: true,
@@ -362,10 +365,6 @@ const deletePost = async (
     return res
       .code(400)
       .send({ status: "fail", message: "Post id is required" });
-  if (req.userId === undefined)
-    return res
-      .code(401)
-      .send({ status: "fail", message: "User is unauthorize" });
 
   // Check if post exist
   const postExist = await req.prisma.post.findUnique({
@@ -376,11 +375,11 @@ const deletePost = async (
   if (!postExist)
     return res.code(404).send({ status: "fail", message: "Post is not exist" });
 
-  // Check if post is belong to user
-  if (postExist.author_id !== req.userId && req.role !== "ADMIN")
-    return res
-      .code(403)
-      .send({ status: "fail", message: "User is not authorize" });
+  // // Check if post is belong to user
+  // if (postExist.author_id !== req.userId && req.role !== "ADMIN")
+  //   return res
+  //     .code(403)
+  //     .send({ status: "fail", message: "User is not authorize" });
 
   // delete post
   const deleteStatus = await req.prisma.post.update({
@@ -410,6 +409,9 @@ const getAllPosts = async (req: FastifyRequest, res: FastifyReply) => {
       tags: true,
       liked_by_users_id: true,
       comments: {
+        where: {
+          status: "ACTIVE",
+        },
         select: {
           id: true,
           content: true,
@@ -839,75 +841,27 @@ const getRecommendedPosts = async (
   return res.code(200).send({ status: "success", data: recomPost ?? [] });
 };
 
-const reportPost = async (
-  req: FastifyRequest<{ Body: PostReportPostBody }>,
-  res: FastifyReply,
+const unArchivePost = async (
+  req: FastifyRequest<{ Params: { postId: string } }>,
+  reply: FastifyReply,
 ) => {
-  // Check if user is authorize
-  if (!req.userId)
-    return res
-      .code(401)
-      .send({ status: "fail", message: "User is not authorize" });
-
-  // Check if user is report his/her own post
-  const userOwned = await req.prisma.post.findUnique({
-    where: {
-      id: req.body.postId,
-      author: {
-        id: req.userId,
-      },
-    },
-  });
-  if (userOwned)
-    return res.code(403).send({
-      status: "fail",
-      error: "UserPostOwnerRestriction",
-      message: "User is not authorize",
-    });
-
-  // Check if post exist
+  // check if post exist
   const postExist = await req.prisma.post.findUnique({
-    where: {
-      id: req.body.postId,
-    },
+    where: { id: req.params.postId },
   });
   if (!postExist)
-    return res.code(404).send({ status: "fail", message: "Post not found" });
+    return reply.code(404).send({ status: "fail", message: "Post not found" });
 
-  // Create report
-  try {
-    await req.prisma.report.create({
-      data: {
-        description: req.body.description,
-        type: "POST",
-        problem: req.body.problem,
-        post_id: req.body.postId,
-        reportedBy_id: req.userId,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res.code(500).send({ status: "fail", message: "Internal Error" });
-  }
+  // Unarchive post
+  const unarchivePost = await req.prisma.post.update({
+    where: { id: req.params.postId },
+    data: {
+      status: "ACTIVE",
+    },
+  });
+
+  return reply.code(200).send({ status: "success", data: unarchivePost });
 };
-
-export type PostReportPostBody = {
-  postId: string;
-  description: string;
-  problem: ReportProblem;
-};
-
-type ReportProblem =
-  | "INAPPRIOPRIATE_CONTENT"
-  | "FALSE_INFORMATION"
-  | "HARASSMENT"
-  | "VIOLENCE_OR_THREATS"
-  | "COPYRIGHT_INFIRNGEMENT"
-  | "PRIVACY_VIOLATION"
-  | "SCAM"
-  | "IMPERSONATION"
-  | "HATESPEECH";
-
 export type PostPostBody = {
   title?: string;
   context: string;
@@ -939,6 +893,7 @@ const postController = {
   getTopTags,
   getPostById,
   getRecommendedPosts,
+  unArchivePost,
 };
 
 export default postController;

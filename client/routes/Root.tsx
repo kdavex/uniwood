@@ -45,6 +45,7 @@ export default function Root() {
     refreshTokenResponse: RefreshTokenResponseData;
   };
   const { setAccessToken } = useContext(TokenContext) as TokenContextProps;
+  const navigate = useNavigate();
   // const match = useRouteMatch()
 
   // Utilities
@@ -62,6 +63,14 @@ export default function Root() {
     setAccessToken(refreshTokenResponse.accessToken);
     localStorage.setItem("accessToken", refreshTokenResponse.accessToken);
   };
+
+  const handleRedirection = () => {
+    if (localStorage.getItem("accountStatus") === "BLOCKED") navigate("/login");
+
+    if (localStorage.getItem("role") === "ADMIN") navigate("/console");
+    else navigate("/");
+  };
+  useEffect(handleRedirection, []);
 
   useEffect(handleUserAuthentication, [userInfoResponse, refreshTokenResponse]);
   return (
@@ -81,7 +90,7 @@ function RightSection({ theme: theme }: { theme: Theme }) {
   const [, setSearch] = useState("");
   const navigate = useNavigate();
   return (
-    <section className="custom2:block hidden">
+    <section className="hidden custom2:block">
       <TextField
         className="search-bar"
         placeholder="Search"

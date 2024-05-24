@@ -14,3 +14,4 @@ export * from "./credential";
 export * from "./address";
 export * from "./articles";
 export * from "./trainings";
+export * from "./report";

@@ -51,7 +51,7 @@ import { constantToCapitalize } from "../utils/stringFormatters";
 
 export const PostContext = createContext<PostContextProps | null>(null);
 
-export default function Post({ postParam }: { postParam: Post }) {
+export default function AdminPost({ postParam }: { postParam: Post }) {
   const [post, setPost] = useState<Post | null>(null);
   const [textVisible, setTextVisibility] = useState<boolean>(false);
   const initializeContextData = () => {
@@ -158,7 +158,7 @@ export default function Post({ postParam }: { postParam: Post }) {
           <div className={`post-detail`}>
             <p
               className={` font-body text-base font-bold text-slate-800 ${postNotFromUser ? "hover:cursor-pointer hover:underline" : ""}`}
-              onClick={navigateToProfile}
+              // onClick={navigateToProfile}
             >
               {post.author.fullname}
             </p>
@@ -179,11 +179,6 @@ export default function Post({ postParam }: { postParam: Post }) {
                 </IconButton>
               </Tooltip>
             </div>
-          )}
-          {post.author.id !== localStorage.getItem("id") && (
-            <IconButton className="ml-auto rounded-full" onClick={handleOpen}>
-              <ReportIcon className="text-red-400" />
-            </IconButton>
           )}
         </div>
         <div className="line line__1"></div>
@@ -443,12 +438,12 @@ function PostActions() {
             setFillHeart(!fillHeart);
           }}
         >
-          {fillHeart ? (
+          {/* {fillHeart ? (
             <FavoriteRounded className="text-primary-300" />
           ) : (
             <FavoriteBorderRounded className="text-gray-600" />
           )}
-          <Typography className="ml-2">Like</Typography>
+          <Typography className="ml-2">Like</Typography> */}
         </MenuItem>
         <MenuItem
           className="rounded-md"
@@ -542,7 +537,7 @@ function CommentModal({
             <Box className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform"></Box>
           )}
         </div>
-        <Paper
+        {/* <Paper
           className="fixed bottom-0 flex w-full gap-2 px-4 py-4"
           elevation={2}
         >
@@ -623,7 +618,7 @@ function CommentModal({
               <SendRounded className="icon" />
             </IconButton>
           </form>
-        </Paper>
+        </Paper> */}
       </div>
     </Modal>
   );
@@ -642,7 +637,7 @@ function Tags({ tags }: { tags: string[] }) {
         if (tag === "") return <></>;
         return (
           <span
-            onClick={handleTagNavigation}
+            // onClick={handleTagNavigation}
             className="break-words text-blue-400 hover:cursor-pointer hover:text-blue-700 hover:underline"
           >
             #{tag}
@@ -746,15 +741,7 @@ function Comment({
           {dateWhenFormat(new Date(comment.createdAt))}
         </Typography>
       </div>
-      {comment.author.id !== localStorage.getItem("id") && (
-        <Box display="flex" justifyContent="flex-end" alignItems="center">
-          <Tooltip title="Report Comment">
-            <IconButton onClick={handleOpen}>
-              <ReportIcon className="text-red-400" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )}
+
       <Modal open={open} onClose={handleClose}>
         <Box
           sx={{

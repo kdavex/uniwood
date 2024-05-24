@@ -146,19 +146,12 @@ const updateComment = async (
 };
 
 const deleteComment = async (
-  req: FastifyRequest<{ Body: { commentId: string } }>,
+  req: FastifyRequest<{ Params: { commentId: string } }>,
   res: FastifyReply,
 ) => {
-  if (!req.body?.commentId)
-    return res
-      .code(400)
-      .send({ status: "fail", message: "Comment id is missing" });
-
-  if (!req.userId) return res.code(401).send({ status: "fail" });
-
   // Check if the user is the author of the comment
   const comment = await req.prisma.comment.findUnique({
-    where: { id: req.body.commentId },
+    where: { id: req.params.commentId },
   });
 
   if (!comment)
@@ -172,7 +165,7 @@ const deleteComment = async (
     });
 
   const deleteStatus = await req.prisma.comment.update({
-    where: { id: req.body.commentId },
+    where: { id: req.params.commentId },
     data: { status: "ARCHIVED" },
   });
 
@@ -343,52 +336,28 @@ const replyComment = async (
   return res.code(200).send({ status: "success", message: "Comment Replied" });
 };
 
-const reportComment = async (
-  req: FastifyRequest<{
-    Body: {
-      commentId: string;
-      problem: ReportProblem;
-      description: string;
-    };
-  }>,
+const unArchiveComment = async (
+  req: FastifyRequest<{ Params: { commentId: string } }>,
   res: FastifyReply,
 ) => {
-  // Check if user is authorize
-  if (!req.userId)
-    return res.code(401).send({
-      status: "fail",
-      message: "User is unauthorize",
-    });
-
   // Check if comment exist
-  const comment = await req.prisma.comment.findUnique({
-    where: { id: req.body.commentId },
+  const commentExist = req.prisma.comment.findUnique({
+    where: { id: req.params.commentId },
   });
-  if (!comment)
-    return res.code(404).send({
-      status: "fail",
-      message: "Comment not found",
-    });
 
-  // check if user is the owner of the comment
-  if (comment.author_id === req.userId) {
-    return res.code(403).send({
-      status: "fail",
-      message: "User is not authorize to report the comment",
-    });
-  }
+  if (!commentExist)
+    return res.code(404).send({ status: "fail", message: "Comment not found" });
 
-  // check if uer
+  // Unarchive the comment
+  const unarchiveComment = req.prisma.comment.update({
+    where: { id: req.params.commentId },
+    data: { status: "ACTIVE" },
+  });
 
-  // Create report
-  await req.prisma.report.create({
-    data: {
-      comment_id: req.body.commentId,
-      problem: req.body.problem,
-      type: "COMMENT",
-      description: req.body.description,
-      reportedBy_id: req.userId,
-    },
+  return res.code(200).send({
+    status: "success",
+    message: "Comment unarchived",
+    data: unarchiveComment,
   });
 };
 
@@ -401,18 +370,7 @@ const commentController = {
   upVoteToggle,
   downVoteToggle,
   replyComment,
+  unArchiveComment,
 };
 
 export default commentController;
-
-// ! Test
-type ReportProblem =
-  | "INAPPRIOPRIATE_CONTENT"
-  | "FALSE_INFORMATION"
-  | "HARASSMENT"
-  | "VIOLENCE_OR_THREATS"
-  | "COPYRIGHT_INFIRNGEMENT"
-  | "PRIVACY_VIOLATION"
-  | "SCAM"
-  | "IMPERSONATION"
-  | "HATESPEECH";

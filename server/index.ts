@@ -33,6 +33,7 @@ import {
   AddressRoute,
   ArticlesRoute,
   TrainingsRoute,
+  ReportRoute,
 } from "./routes/index";
 import { onRequestHook } from "./hooks/index";
 import { messageChangeHandler } from "./mongodb/sockets/index";
@@ -93,6 +94,7 @@ app.register(OtpRoute, { prefix: "/otp" });
 app.register(AddressRoute, { prefix: "/address" });
 app.register(ArticlesRoute, { prefix: "/articles" });
 app.register(TrainingsRoute, { prefix: "/trainings" });
+app.register(ReportRoute, { prefix: "/reports" });
 
 app.ready((err) => {
   if (err) throw err;

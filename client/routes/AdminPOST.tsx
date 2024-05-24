@@ -5,8 +5,8 @@ import {
   Button,
   Menu,
   MenuItem,
-  IconButton,
   Tooltip,
+  IconButton,
 } from "@mui/material";
 import axiosClient from "../utils/axios";
 import dateUtil from "date-and-time";
@@ -34,13 +34,7 @@ export default function AdminPost() {
     setSelectedPost(null);
   };
 
-  const handleCommentView = () => {
-    navigate(
-      `/console/post/${selectedPost?.postId}?commentId=${selectedPost?.commentId}`,
-    );
-  };
-
-  const handleCommentUnarchive = () => {
+  const handlePostUnarchive = () => {
     axiosClient
       .patch(`/comments/unarchive/${selectedPost?.reportId}`)
       .then(() => {
@@ -52,20 +46,19 @@ export default function AdminPost() {
         let postTarget = postReports.find(
           (post) => post.reportId == selectedPost?.reportId,
         );
-
-        postTarget!.commentStatus = "ACTIVE";
+        setSelectedPost({ ...selectedPost!, postStatus: "ACTIVE" });
+        postTarget!.postStatus = "ACTIVE";
         setPostReports((prev) =>
           prev.map((post) =>
             post.reportId === selectedPost?.reportId ? postTarget! : post,
           ),
         );
-        setSelectedPost((prev) => ({ ...prev!, commentStatus: "ACTIVE" }));
-        handleClose();
+        setOpen(false);
       })
-      .catch((error) => {
+      .catch(() => {
         setAlert({
           visible: true,
-          message: error.response.data.message,
+          message: "Comment could not be unarchived",
           severity: "error",
         });
       });
@@ -86,7 +79,7 @@ export default function AdminPost() {
   ) => {
     if (status === "RESOLVE") {
       axiosClient
-        .patch("/reports/comment", {
+        .patch("/reports/post", {
           reportId: selectedPost?.reportId,
           status: "RESOLVED",
         })
@@ -100,19 +93,18 @@ export default function AdminPost() {
           let postTarget = postReports.find(
             (post) => post.reportId == selectedPost?.reportId,
           );
-
+          setSelectedPost({ ...selectedPost!, reportStatus: "RESOLVED" });
           postTarget!.reportStatus = "RESOLVED";
           setPostReports((prev) =>
             prev.map((post) =>
               post.reportId === selectedPost?.reportId ? postTarget! : post,
             ),
           );
-          setSelectedPost((prev) => ({ ...prev!, status: "RESOLVED" }));
           setOpen(false);
         });
     } else if (status === "IN_REVIEW") {
       axiosClient
-        .patch("/reports/comment", {
+        .patch("/reports/post", {
           reportId: selectedPost?.reportId,
           status: "IN_REVIEW",
         })
@@ -132,12 +124,12 @@ export default function AdminPost() {
               post.reportId === selectedPost?.reportId ? postTarget! : post,
             ),
           );
-          setSelectedPost((prev) => ({ ...prev!, status: "IN_REVIEW" }));
+          setSelectedPost({ ...selectedPost!, reportStatus: "IN_REVIEW" });
           setOpen(false);
         });
     } else if (status === "UNRESOLVED") {
       axiosClient
-        .patch("/reports/comment", {
+        .patch("/reports/post", {
           reportId: selectedPost?.reportId,
           status: "UNRESOLVED",
         })
@@ -157,50 +149,67 @@ export default function AdminPost() {
               post.reportId === selectedPost?.reportId ? postTarget! : post,
             ),
           );
-          setSelectedPost((prev) => ({ ...prev!, status: "UNRESOLVED" }));
+          setSelectedPost({ ...selectedPost!, reportStatus: "UNRESOLVED" });
           setOpen(false);
         });
     }
     handleMenuClose();
   };
 
-  const initializePostReports = () => {
-    axiosClient.get("/reports/comment").then((response) => {
-      setPostReports(response.data.data);
-    });
+  const handlePostView = () => {
+    navigate(`/console/post/${selectedPost?.postId}`);
   };
 
-  const handleCommentArchive = () => {
+  const handlePostArchive = () => {
     axiosClient
-      .delete(`/comments/${selectedPost?.commentId}`)
+      .delete(`/posts/${selectedPost?.postId}`)
       .then(() => {
         setAlert({
           visible: true,
-          message: "Comment has been archived",
+          message: "Post has been archived",
           severity: "success",
         });
         let postTarget = postReports.find(
           (post) => post.reportId == selectedPost?.reportId,
         );
-
-        postTarget!.commentStatus = "ARCHIVED";
+        setSelectedPost({ ...selectedPost!, postStatus: "ARCHIVED" });
+        postTarget!.postStatus = "ARCHIVED";
         setPostReports((prev) =>
           prev.map((post) =>
             post.reportId === selectedPost?.reportId ? postTarget! : post,
           ),
         );
-        setSelectedPost((prev) => ({ ...prev!, commentStatus: "ARCHIVED" }));
-        handleClose();
+        setOpen(false);
       })
-      .catch((error) => {
-        console.log(error.response.data);
+      .catch(() => {
         setAlert({
           visible: true,
-          message: error.response.data.message,
+          message: "Post could not be archived",
           severity: "error",
         });
       });
   };
+
+  const initializePostReports = () => {
+    axiosClient.get("/reports/post").then((response) => {
+      setPostReports(response.data.data);
+    });
+  };
+
+  const handleReportDelete = () => {
+    axiosClient.delete(`/reports/${selectedPost?.reportId}`).then(() => {
+      setAlert({
+        visible: true,
+        message: "Report has been deleted",
+        severity: "success",
+      });
+      setPostReports((prev) =>
+        prev.filter((post) => post.reportId !== selectedPost?.reportId),
+      );
+      handleClose();
+    });
+  };
+
   useEffect(initializePostReports, []);
 
   return (
@@ -216,23 +225,18 @@ export default function AdminPost() {
               Report ID: {post.reportId.slice(5, 10)}{" "}
               {post.reportId.slice(10, 15)}
             </h2>
-
             <p
               className={`mb-2 text-sm ${post.reportStatus === "UNRESOLVED" ? "text-red-600" : post.reportStatus === "IN_REVIEW" ? "text-blue-600" : "text-green-600"}`}
             >
               <strong>Report Status:</strong> <p>{post.reportStatus}</p>
             </p>
             <p
-              className={`mb-5 text-sm ${post.commentStatus === "ARCHIVED" ? "text-red-600" : "text-green-600"}`}
+              className={`mb-5 text-sm ${post.postStatus === "ARCHIVED" ? "text-red-600" : "text-green-600"}`}
             >
-              <strong>Comment Status:</strong> <p>{post.commentStatus}</p>
+              <strong>Post Status:</strong> <p>{post.postStatus}</p>
             </p>
             <p className="mb-2 text-sm text-gray-600">
-              <strong>Reason:</strong> {post.problem}
-            </p>
-
-            <p className="mb-2 text-sm text-gray-600">
-              <strong>Problem:</strong>
+              <strong>Reason:</strong>
               <span className="">{constantToCapitalize(post.problem)}</span>
             </p>
             <p className="mb-2 text-sm text-gray-600">
@@ -256,7 +260,7 @@ export default function AdminPost() {
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >
-        <Box className="mx-auto my-52 max-w-xl rounded-lg bg-white p-6 shadow-md">
+        <Box className=" relative mx-auto my-52 max-w-xl rounded-lg bg-white p-6 shadow-md">
           <Tooltip title="Close" arrow>
             <IconButton
               className="absolute right-3 top-3"
@@ -271,7 +275,6 @@ export default function AdminPost() {
                 Report ID: {selectedPost.reportId.slice(5, 10)}
                 {selectedPost.reportId.slice(10, 15)}
               </h2>
-
               <p
                 className={`mb-2 text-sm ${selectedPost.reportStatus === "UNRESOLVED" ? "text-red-600" : selectedPost.reportStatus === "IN_REVIEW" ? "text-blue-600" : "text-green-600"}`}
               >
@@ -279,17 +282,13 @@ export default function AdminPost() {
                 <p>{selectedPost.reportStatus}</p>
               </p>
               <p
-                className={`mb-5 text-sm ${selectedPost.commentStatus === "ARCHIVED" ? "text-red-600" : "text-green-600"}`}
+                className={`mb-5 text-sm ${selectedPost.postStatus === "ARCHIVED" ? "text-red-600" : "text-green-600"}`}
               >
-                <strong>Comment Status:</strong>{" "}
-                <p>{selectedPost.commentStatus}</p>
+                <strong>Post Status:</strong> <p>{selectedPost.postStatus}</p>
               </p>
               <p className="mb-2 text-sm text-gray-600">
                 <strong>Reason:</strong>{" "}
                 {constantToCapitalize(selectedPost.problem)}
-              </p>
-              <p className="mb-2 text-sm text-gray-600">
-                <strong>Problem:</strong> {selectedPost.problem}
               </p>
               <p className="mb-2 text-sm text-gray-600">
                 <strong>Description:</strong> {selectedPost.description}
@@ -299,29 +298,40 @@ export default function AdminPost() {
               </p>
 
               <p className="mb-2 text-sm text-gray-600">
-                <strong>Date reported:</strong> {selectedPost.createdAt}
+                <strong>Date reported:</strong>{" "}
+                {dateUtil.format(
+                  new Date(selectedPost.createdAt),
+                  "YYYY-MM-DD",
+                )}
               </p>
               <div className="mt-4 flex justify-center gap-6">
+                {/* <Button
+                  variant="contained"
+                  className="bg-gray-500 font-bold text-white"
+                  onClick={handleClose}
+                >
+                  Close
+                </Button> */}
                 <Button
                   variant="contained"
                   className="bg-blue-400 font-bold text-white"
-                  onClick={handleCommentView}
+                  onClick={handlePostView}
                 >
                   View
                 </Button>
-                {selectedPost.commentStatus === "ACTIVE" ? (
+                {selectedPost.postStatus === "ACTIVE" ? (
                   <Button
                     variant="contained"
+                    onClick={handlePostArchive}
                     className="bg-red-400 font-bold text-white"
-                    onClick={handleCommentArchive}
                   >
-                    Archive Comment
+                    Archive
                   </Button>
                 ) : (
                   <Button
                     variant="contained"
+                    onClick={handlePostUnarchive}
                     className="bg-green-400 font-bold text-white"
-                    onClick={handleCommentUnarchive}
                   >
                     Unarchive
                   </Button>
@@ -361,16 +371,15 @@ export default function AdminPost() {
 interface Report {
   reportId: string;
   reportedById: string;
-  postId: string;
-  commentId: string;
   reportedByFullname: string;
   postAuthorId: string;
   postAuthorFullname: string;
+  postId: string;
   type: "POST";
   problem: ReportProblem;
   description: string;
   reportStatus: "RESOLVED" | "UNRESOLVED" | "IN_REVIEW";
-  commentStatus: "ARCHIVED" | "ACTIVE";
+  postStatus: "ACTIVE" | "ARCHIVED";
   createdAt: string;
 }
 

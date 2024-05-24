@@ -82,6 +82,8 @@ export function UsersRoute(
     preValidation: [authorize("USER")],
     handler: userController.getFollowings,
   });
+  instance.patch("/block/:userId", userController.blockUser);
+  instance.patch("/unblock/:userId", userController.unBlockUser);
 
   instance.get("/existUsername/:username", userController.verifyUsernameExist);
   instance.get("/existEmail/:email", userController.verifyEmailExist);

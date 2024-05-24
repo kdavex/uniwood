@@ -83,6 +83,8 @@ export const login = async (
   return sendAccessToken(
     {
       id: userExist.id,
+      role: userExist.role,
+      accountStatus: userExist.account_status,
     },
     accessToken,
     res,

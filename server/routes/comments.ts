@@ -38,15 +38,14 @@ export function CommentsRoute(
     { preValidation: [authorize("ANY")] },
     commentController.downVoteToggle,
   );
-  instance.delete(
-    "/",
-    { preValidation: [authorize("ANY")] },
-    commentController.deleteComment,
-  );
+  instance.delete("/:commentId", commentController.deleteComment);
   instance.post(
     "/reply",
-    { preValidation: [authorize("ANY")] },
+    { preValidation: [authorize("USER")] },
     commentController.replyComment,
   );
+
+  instance.patch("/unarchive/:commentId", commentController.unArchiveComment);
+
   done();
 }

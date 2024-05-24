@@ -14,3 +14,14 @@ export function trimSpace(text: string) {
 export function stringToConstant(text: string) {
   return text.toUpperCase().replace(/ /g, "_");
 }
+
+/**
+ * transforms contants to capitalized string ex. "HELLO_WORLD" to "Hello World"
+ * @param text
+ * @returns
+ */
+export function constantToCapitalize(text: string) {
+  return text
+    .replace(/_/g, " ")
+    .replace(/(?<=\b\w)\w+/g, (l) => l.toLowerCase());
+}

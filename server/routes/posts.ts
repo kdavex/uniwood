@@ -17,22 +17,14 @@ export function PostsRoute(
     { preValidation: [authorize("ANY")] },
     postController.getAllPosts,
   );
-  instance.get(
-    "/:postId",
-    { preValidation: [authorize("ANY")] },
-    postController.getPostById,
-  );
+  instance.get("/:postId", postController.getPostById);
 
   instance.get(
     "/user/:usernameOrId",
     { preValidation: [authorize("ANY")] },
     postController.getAllUserPost,
   );
-  // instance.get(
-  //   "/:postId",
-  //   { preValidation: [authorize("ANY")] },
-  //   postController.getPost
-  // );
+
   instance.post(
     "/",
     {
@@ -49,22 +41,19 @@ export function PostsRoute(
     },
     postController.updatePost,
   );
-  instance.delete(
-    "/:postId",
-    { preValidation: [authorize("ANY")] },
-    postController.deletePost,
-  );
+  instance.delete("/:postId", postController.deletePost);
   instance.patch(
     "/likeToggle",
     { preValidation: [authorize("ANY")] },
     postController.likePostToggle,
   );
   instance.get("/topTags", postController.getTopTags);
-  done();
 
   instance.get(
     "/recommended",
     { preValidation: [authorize("ANY")] },
     postController.getRecommendedPosts,
   );
+  instance.patch("/unarchivePost/:postId", postController.unArchivePost);
+  done();
 }
